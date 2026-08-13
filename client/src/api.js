@@ -70,6 +70,30 @@ export const getMe = async () => {
   return data
 }
 
+export const updateProfile = async (profileData) => {
+  const response = await fetch(
+    `${API_URL}/api/users/profile`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(profileData),
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || 'Failed to update profile'
+    )
+  }
+
+  return data
+}
+
 /* =========================
    MARKETPLACE
 ========================= */
