@@ -1,26 +1,109 @@
 .navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 60px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 18px 30px;
   background-color: #1e293b;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 25px;
 }
 
+/* CampusConnect logo */
+
 .navbar h2 {
-  color: white;
   margin: 0;
+  white-space: nowrap;
+  font-size: 25px;
+  color: #38bdf8;
 }
+
+/* Navigation links */
 
 .navbar-links {
   display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 20px;
 }
 
 .navbar-links a {
   color: white;
   text-decoration: none;
+  font-size: 17px;
+  white-space: nowrap;
+  transition: color 0.2s ease;
 }
+
+/* Blue hover */
 
 .navbar-links a:hover {
   color: #38bdf8;
+}
+
+/* Logout */
+
+.logout-button {
+  border: none;
+  background: none;
+  color: white;
+  font-size: 17px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.logout-button:hover {
+  color: #38bdf8;
+}
+
+
+/* Split screen / medium screen */
+
+@media (max-width: 1100px) {
+  .navbar {
+    flex-direction: column;
+    justify-content: center;
+    padding: 18px 20px;
+    gap: 15px;
+  }
+
+  .navbar-links {
+    justify-content: center;
+    gap: 15px;
+  }
+
+  .navbar-links a,
+  .logout-button {
+    font-size: 16px;
+  }
+}
+
+
+/* Mobile */
+
+@media (max-width: 600px) {
+  .navbar {
+    padding: 15px;
+  }
+
+  .navbar h2 {
+    font-size: 22px;
+  }
+
+  .navbar-links {
+    width: 100%;
+    justify-content: center;
+    gap: 12px 18px;
+  }
+
+  .navbar-links a,
+  .logout-button {
+    font-size: 15px;
+  }
 }

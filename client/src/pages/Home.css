@@ -1,10 +1,13 @@
 .home {
   min-height: 100vh;
+  background-color: #f8fafc;
 }
+
+/* Hero */
 
 .hero-section {
   text-align: center;
-  padding: 80px 20px;
+  padding: 90px 20px;
   background-color: #f1f5f9;
 }
 
@@ -19,16 +22,28 @@
   color: #475569;
   max-width: 800px;
   margin: 10px auto;
+  line-height: 1.6;
 }
 
+/* Features */
+
 .features-section {
-  padding: 60px 40px;
+  padding: 65px 40px;
   text-align: center;
+  background-color: #ffffff;
 }
 
 .features-section h2 {
   font-size: 32px;
-  margin-bottom: 40px;
+  margin-bottom: 12px;
+  color: #0f172a;
+}
+
+.features-intro {
+  max-width: 700px;
+  margin: 0 auto 40px;
+  color: #64748b;
+  line-height: 1.6;
 }
 
 .feature-grid {
@@ -38,6 +53,7 @@
   max-width: 1100px;
   margin: 0 auto;
 }
+
 .feature-card {
   display: block;
   padding: 30px;
@@ -47,17 +63,27 @@
   text-align: left;
   text-decoration: none;
   color: inherit;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s,
+    border-color 0.2s;
 }
+
 .feature-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  border-color: #38bdf8;
 }
 
 .feature-card h3 {
   font-size: 22px;
   margin-bottom: 12px;
   color: #0f172a;
+  transition: color 0.2s;
+}
+
+.feature-card:hover h3 {
+  color: #0284c7;
 }
 
 .feature-card p {
@@ -65,15 +91,49 @@
   line-height: 1.6;
 }
 
+/* Call to action */
+
+.home-cta {
+  padding: 70px 20px;
+  text-align: center;
+  background-color: #1e293b;
+}
+
+.home-cta h2 {
+  margin: 0 0 15px;
+  color: #38bdf8;
+  font-size: 30px;
+}
+
+.home-cta p {
+  max-width: 700px;
+  margin: 0 auto;
+  color: #cbd5e1;
+  line-height: 1.7;
+  font-size: 17px;
+}
+
+/* Tablet */
+
 @media (max-width: 900px) {
   .feature-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .hero-section {
+    padding: 70px 20px;
+  }
 }
+
+/* Mobile */
 
 @media (max-width: 600px) {
   .feature-grid {
     grid-template-columns: 1fr;
+  }
+
+  .hero-section {
+    padding: 60px 20px;
   }
 
   .hero-section h1 {
@@ -81,6 +141,18 @@
   }
 
   .features-section {
-    padding: 40px 20px;
+    padding: 45px 20px;
+  }
+
+  .features-section h2 {
+    font-size: 28px;
+  }
+
+  .home-cta {
+    padding: 50px 20px;
+  }
+
+  .home-cta h2 {
+    font-size: 25px;
   }
 }

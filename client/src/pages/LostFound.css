@@ -1,0 +1,275 @@
+.lost-found-page {
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.lost-found-header {
+  padding: 60px 40px;
+  text-align: center;
+  background-color: #f1f5f9;
+}
+
+.lost-found-header h1 {
+  font-size: 40px;
+  color: #0f172a;
+  margin-bottom: 15px;
+}
+
+.lost-found-header p {
+  color: #475569;
+  font-size: 18px;
+  margin-bottom: 25px;
+}
+
+.report-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  background-color: #1e293b;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.report-button:hover {
+  background-color: #334155;
+}
+
+.report-section {
+  padding: 40px 20px;
+  background-color: white;
+}
+
+.report-container {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.report-container h2 {
+  text-align: center;
+  color: #0f172a;
+  margin-bottom: 30px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 15px;
+  box-sizing: border-box;
+  background-color: white;
+}
+
+.form-group textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.type-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.type-button {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background-color: white;
+  color: #334155;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.type-button.active {
+  background-color: #1e293b;
+  color: white;
+  border-color: #1e293b;
+}
+
+.submit-report-button {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 8px;
+  background-color: #1e293b;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.submit-report-button:hover {
+  background-color: #334155;
+}
+
+.lost-found-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 50px 40px;
+}
+
+.lost-found-toolbar {
+  display: flex;
+  gap: 15px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.lost-found-toolbar input,
+.lost-found-toolbar select {
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 15px;
+  background-color: white;
+}
+
+.lost-found-toolbar input {
+  flex: 1;
+}
+
+.lost-found-content h2 {
+  text-align: center;
+  color: #0f172a;
+  margin: 35px 0 25px;
+}
+
+.lost-found-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+}
+
+.lost-found-card {
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.lost-found-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.lost-found-image {
+  height: 200px;
+  background-color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+}
+
+.lost-found-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lost-found-details {
+  padding: 20px;
+}
+
+.card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.card-title-row h3 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.status {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status.lost {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.status.found {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.lost-found-details > p {
+  color: #64748b;
+  line-height: 1.5;
+  margin: 15px 0;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #475569;
+  font-size: 14px;
+}
+
+.no-items {
+  text-align: center;
+  padding: 50px 20px;
+}
+
+.no-items h3 {
+  color: #0f172a;
+}
+
+.no-items p {
+  color: #64748b;
+}
+
+@media (max-width: 900px) {
+  .lost-found-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .lost-found-header {
+    padding: 45px 20px;
+  }
+
+  .lost-found-header h1 {
+    font-size: 32px;
+  }
+
+  .lost-found-content {
+    padding: 35px 20px;
+  }
+
+  .lost-found-toolbar {
+    flex-direction: column;
+  }
+
+  .lost-found-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .type-buttons {
+    flex-direction: column;
+  }
+}
