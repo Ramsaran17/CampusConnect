@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { loginUser } from '../api'
 import './Auth.css'
 
 function Login() {
@@ -7,8 +8,9 @@ function Login() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     if (!email.trim()) {
@@ -21,36 +23,25 @@ function Login() {
       return
     }
 
-    const users = JSON.parse(
-      localStorage.getItem('campusUsers') || '[]'
-    )
+    try {
+      const data = await loginUser({
+        email: email.trim().toLowerCase(),
+        password,
+      })
 
-    const user = users.find(
-      (existingUser) =>
-        existingUser.email.toLowerCase() ===
-          email.toLowerCase() &&
-        existingUser.password === password
-    )
+      localStorage.setItem('token', data.token)
 
-    if (!user) {
-      alert('Invalid email or password')
-      return
+      localStorage.setItem(
+        'currentUser',
+        JSON.stringify(data.user)
+      )
+
+      alert(`Welcome, ${data.user.name}!`)
+
+      navigate('/')
+    } catch (error) {
+      alert(error.message)
     }
-
-    const loggedInUser = {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    }
-
-    localStorage.setItem(
-      'currentUser',
-      JSON.stringify(loggedInUser)
-    )
-
-    alert(`Welcome, ${user.name}!`)
-
-    navigate('/')
   }
 
   return (
@@ -82,14 +73,63 @@ function Login() {
           <div className="form-group">
             <label>Password</label>
 
-            <input
-              type="password"
-              value={password}
-              onChange={(event) =>
-                setPassword(event.target.value)
-              }
-              placeholder="Enter password"
-            />
+            <div className="password-input-wrapper">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(event) =>
+                  setPassword(event.target.value)
+                }
+                placeholder="Enter password"
+              />
+
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() =>
+                  setShowPassword(!showPassword)
+                }
+                aria-label={
+                  showPassword
+                    ? 'Hide password'
+                    : 'Show password'
+                }
+              >
+                {showPassword ? (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M3 3l18 18" />
+                    <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                    <path d="M9.9 4.2A10.8 10.8 0 0 1 12 4c7 0 10 8 10 8a16.6 16.6 0 0 1-3.1 4.4" />
+                    <path d="M6.6 6.6C3.6 8.5 2 12 2 12s3 8 10 8a10.8 10.8 0 0 0 4.1-.8" />
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M2 12s3-8 10-8 10 8 10 8-3 8-10 8S2 12 2 12z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
           <button

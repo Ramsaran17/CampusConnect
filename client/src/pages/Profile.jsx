@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { getMe, updateProfile } from '../api'
 import './Profile.css'
 
 function Profile() {
   const [isEditing, setIsEditing] = useState(false)
 
+  // Saved profile data
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [department, setDepartment] = useState('')
@@ -13,28 +15,59 @@ function Profile() {
   const [bio, setBio] = useState('')
   const [profileImage, setProfileImage] = useState(null)
 
+  // Temporary editing data
+  const [editName, setEditName] = useState('')
+  const [editDepartment, setEditDepartment] = useState('')
+  const [editYear, setEditYear] = useState('')
+  const [editHostel, setEditHostel] = useState('')
+  const [editBio, setEditBio] = useState('')
+  const [editProfileImage, setEditProfileImage] = useState(null)
+
   useEffect(() => {
-    const currentUser = JSON.parse(
-      localStorage.getItem('currentUser') || 'null'
-    )
-
-    const savedProfile = JSON.parse(
-      localStorage.getItem('studentProfile') || 'null'
-    )
-
-    if (savedProfile) {
-      setName(savedProfile.name || '')
-      setEmail(savedProfile.email || '')
-      setDepartment(savedProfile.department || '')
-      setYear(savedProfile.year || '')
-      setHostel(savedProfile.hostel || '')
-      setBio(savedProfile.bio || '')
-      setProfileImage(savedProfile.profileImage || null)
-    } else if (currentUser) {
-      setName(currentUser.name || '')
-      setEmail(currentUser.email || '')
-    }
+    loadProfile()
   }, [])
+
+  const loadProfile = async () => {
+    try {
+      const data = await getMe()
+      const user = data.user
+
+      const yearLabels = {
+        1: '1st Year',
+        2: '2nd Year',
+        3: '3rd Year',
+        4: '4th Year',
+      }
+
+      setName(user.name || '')
+      setEmail(user.email || '')
+      setDepartment(user.department || '')
+      setYear(yearLabels[user.year] || '')
+      setProfileImage(user.profileImage || null)
+
+      const extraProfile = JSON.parse(
+        localStorage.getItem('studentExtraProfile') || 'null'
+      )
+
+      if (extraProfile) {
+        setHostel(extraProfile.hostel || '')
+        setBio(extraProfile.bio || '')
+      }
+    } catch (error) {
+      console.error('Failed to load profile:', error)
+    }
+  }
+
+  const startEditing = () => {
+    setEditName(name)
+    setEditDepartment(department)
+    setEditYear(year)
+    setEditHostel(hostel)
+    setEditBio(bio)
+    setEditProfileImage(profileImage)
+
+    setIsEditing(true)
+  }
 
   const handleImageChange = (event) => {
     const file = event.target.files[0]
@@ -46,58 +79,83 @@ function Profile() {
     const reader = new FileReader()
 
     reader.onload = () => {
-      setProfileImage(reader.result)
+      setEditProfileImage(reader.result)
     }
 
     reader.readAsDataURL(file)
   }
 
-  const handleSave = (event) => {
+  const handleSave = async (event) => {
     event.preventDefault()
 
-    if (!name.trim()) {
+    if (!editName.trim()) {
       alert('Please enter your name')
       return
     }
 
-    if (!email.trim()) {
-      alert('Please enter your email')
+    if (!editDepartment.trim()) {
+      alert('Please enter your department')
       return
     }
 
-    const profile = {
-      name: name.trim(),
-      email: email.trim(),
-      department: department.trim(),
-      year,
-      hostel: hostel.trim(),
-      bio: bio.trim(),
-      profileImage,
+    if (!editYear) {
+      alert('Please select your year')
+      return
     }
 
-    localStorage.setItem(
-      'studentProfile',
-      JSON.stringify(profile)
-    )
+    try {
+      const numericYear = Number(
+        editYear.replace(/\D/g, '')
+      )
 
-    const currentUser = JSON.parse(
-      localStorage.getItem('currentUser') || 'null'
-    )
+      const data = await updateProfile({
+        name: editName.trim(),
+        department: editDepartment.trim(),
+        year: numericYear,
+        profileImage: editProfileImage || '',
+      })
 
-    if (currentUser) {
+      const updatedUser = data.user
+
+      const yearLabels = {
+        1: '1st Year',
+        2: '2nd Year',
+        3: '3rd Year',
+        4: '4th Year',
+      }
+
+      setName(updatedUser.name || '')
+      setEmail(updatedUser.email || '')
+      setDepartment(updatedUser.department || '')
+      setYear(yearLabels[updatedUser.year] || '')
+      setProfileImage(updatedUser.profileImage || null)
+
+      setHostel(editHostel.trim())
+      setBio(editBio.trim())
+
       localStorage.setItem(
-        'currentUser',
+        'studentExtraProfile',
         JSON.stringify({
-          ...currentUser,
-          name: name.trim(),
-          email: email.trim(),
+          hostel: editHostel.trim(),
+          bio: editBio.trim(),
         })
       )
+
+      localStorage.setItem(
+        'currentUser',
+        JSON.stringify(updatedUser)
+      )
+
+      setIsEditing(false)
+
+      alert('Profile updated successfully!')
+    } catch (error) {
+      alert(error.message)
     }
+  }
 
+  const handleCancel = () => {
     setIsEditing(false)
-
-    alert('Profile updated successfully!')
   }
 
   return (
@@ -105,11 +163,28 @@ function Profile() {
 
       <div className="profile-container">
 
+        {/* ================= HEADER ================= */}
+
         <div className="profile-header">
+
           <div className="profile-photo-section">
 
             <div className="profile-photo">
-              {profileImage ? (
+
+              {isEditing ? (
+                editProfileImage ? (
+                  <img
+                    src={editProfileImage}
+                    alt="Profile"
+                  />
+                ) : (
+                  <span>
+                    {name
+                      ? name.charAt(0).toUpperCase()
+                      : 'U'}
+                  </span>
+                )
+              ) : profileImage ? (
                 <img
                   src={profileImage}
                   alt="Profile"
@@ -121,6 +196,7 @@ function Profile() {
                     : 'U'}
                 </span>
               )}
+
             </div>
 
             {isEditing && (
@@ -138,24 +214,32 @@ function Profile() {
           </div>
 
           <div className="profile-heading">
-            <h1>{name || 'Student Profile'}</h1>
+
+            <h1>
+              {name || 'Student Profile'}
+            </h1>
 
             <p>
               {department || 'Department not added'}
             </p>
+
           </div>
 
           {!isEditing && (
             <button
               className="edit-profile-button"
-              onClick={() => setIsEditing(true)}
+              onClick={startEditing}
             >
               Edit Profile
             </button>
           )}
+
         </div>
 
+        {/* ================= EDIT FORM ================= */}
+
         {isEditing ? (
+
           <form
             className="profile-form"
             onSubmit={handleSave}
@@ -163,54 +247,70 @@ function Profile() {
 
             <div className="profile-form-grid">
 
+              {/* NAME */}
+
               <div className="form-group">
+
                 <label>Name</label>
 
                 <input
                   type="text"
-                  value={name}
+                  value={editName}
                   onChange={(event) =>
-                    setName(event.target.value)
+                    setEditName(event.target.value)
                   }
                   placeholder="Enter your name"
                 />
+
               </div>
 
+              {/* EMAIL */}
+
               <div className="form-group">
+
                 <label>Email</label>
 
                 <input
                   type="email"
                   value={email}
-                  onChange={(event) =>
-                    setEmail(event.target.value)
-                  }
-                  placeholder="Enter your email"
+                  disabled
                 />
+
               </div>
 
+              {/* DEPARTMENT */}
+
               <div className="form-group">
+
                 <label>Department</label>
 
                 <input
                   type="text"
-                  value={department}
+                  value={editDepartment}
                   onChange={(event) =>
-                    setDepartment(event.target.value)
+                    setEditDepartment(
+                      event.target.value
+                    )
                   }
                   placeholder="Example: ECE"
                 />
+
               </div>
 
+              {/* YEAR */}
+
               <div className="form-group">
+
                 <label>Year</label>
 
                 <select
-                  value={year}
+                  className="year-select"
+                  value={editYear}
                   onChange={(event) =>
-                    setYear(event.target.value)
+                    setEditYear(event.target.value)
                   }
                 >
+
                   <option value="">
                     Select year
                   </option>
@@ -231,35 +331,43 @@ function Profile() {
                     4th Year
                   </option>
 
-                  <option value="Postgraduate">
-                    Postgraduate
-                  </option>
                 </select>
+
               </div>
 
+              {/* HOSTEL */}
+
               <div className="form-group">
+
                 <label>Hostel</label>
 
                 <input
                   type="text"
-                  value={hostel}
+                  value={editHostel}
                   onChange={(event) =>
-                    setHostel(event.target.value)
+                    setEditHostel(
+                      event.target.value
+                    )
                   }
                   placeholder="Example: Hostel 5"
                 />
+
               </div>
 
+              {/* BIO */}
+
               <div className="form-group full-width">
+
                 <label>Bio</label>
 
                 <textarea
-                  value={bio}
+                  value={editBio}
                   onChange={(event) =>
-                    setBio(event.target.value)
+                    setEditBio(event.target.value)
                   }
                   placeholder="Tell other students something about yourself..."
                 />
+
               </div>
 
             </div>
@@ -276,7 +384,7 @@ function Profile() {
               <button
                 type="button"
                 className="cancel-profile-button"
-                onClick={() => setIsEditing(false)}
+                onClick={handleCancel}
               >
                 Cancel
               </button>
@@ -284,47 +392,67 @@ function Profile() {
             </div>
 
           </form>
+
         ) : (
+
+          /* ================= PROFILE INFORMATION ================= */
+
           <div className="profile-information">
 
             <div className="profile-info-card">
+
               <span>📧</span>
 
               <div>
                 <small>Email</small>
-                <p>{email || 'Not added'}</p>
+
+                <p>
+                  {email || 'Not added'}
+                </p>
               </div>
+
             </div>
 
             <div className="profile-info-card">
+
               <span>🎓</span>
 
               <div>
                 <small>Department</small>
+
                 <p>
                   {department || 'Not added'}
                 </p>
               </div>
+
             </div>
 
             <div className="profile-info-card">
+
               <span>📚</span>
 
               <div>
                 <small>Year</small>
-                <p>{year || 'Not added'}</p>
+
+                <p>
+                  {year || 'Not added'}
+                </p>
               </div>
+
             </div>
 
             <div className="profile-info-card">
+
               <span>🏠</span>
 
               <div>
                 <small>Hostel</small>
+
                 <p>
                   {hostel || 'Not added'}
                 </p>
               </div>
+
             </div>
 
             <div className="profile-bio">
@@ -339,6 +467,7 @@ function Profile() {
             </div>
 
           </div>
+
         )}
 
         <Link
