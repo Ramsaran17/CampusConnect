@@ -1,13 +1,16 @@
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { getListing } from '../api'
+import { getListing, getMe, deleteListing } from '../api'
 import './ListingDetails.css'
 
 function ListingDetails() {
   const { id } = useParams()
+  const navigate = useNavigate()
 
   const [item, setItem] = useState(null)
+  const [currentUser, setCurrentUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -19,9 +22,13 @@ function ListingDetails() {
       setLoading(true)
       setError('')
 
-      const data = await getListing(id)
+      const [listingData, userData] = await Promise.all([
+        getListing(id),
+        getMe(),
+      ])
 
-      setItem(data.listing)
+      setItem(listingData.listing)
+      setCurrentUser(userData.user)
     } catch (error) {
       console.error('Failed to load listing:', error)
 
@@ -30,6 +37,39 @@ function ListingDetails() {
       )
     } finally {
       setLoading(false)
+    }
+  }
+
+  const isOwner =
+    item &&
+    currentUser &&
+    String(item.seller?._id) === String(currentUser._id)
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this listing?'
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    try {
+      setDeleting(true)
+
+      await deleteListing(id)
+
+      alert('Listing deleted successfully')
+
+      navigate('/marketplace')
+    } catch (error) {
+      console.error('Failed to delete listing:', error)
+
+      alert(
+        error.message || 'Failed to delete listing'
+      )
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -200,12 +240,38 @@ function ListingDetails() {
                 and arrange a meeting.
               </p>
 
-              <Link
-                to="/messages"
-                className="contact-seller-button"
-              >
-                Contact Seller
-              </Link>
+              <div className="listing-action-buttons">
+
+                <Link
+                  to="/messages"
+                  className="contact-seller-button"
+                >
+                  Contact Seller
+                </Link>
+
+                {isOwner && (
+                  <>
+                    <Link
+                      to={`/marketplace/${id}/edit`}
+                      className="edit-listing-button"
+                    >
+                      Edit Listing
+                    </Link>
+
+                    <button
+                      type="button"
+                      className="delete-listing-button"
+                      onClick={handleDelete}
+                      disabled={deleting}
+                    >
+                      {deleting
+                        ? 'Deleting...'
+                        : 'Delete Listing'}
+                    </button>
+                  </>
+                )}
+
+              </div>
 
             </div>
 
