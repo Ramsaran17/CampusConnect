@@ -11,6 +11,7 @@ import CreateListing from './pages/CreateListing'
 import ListingDetails from './pages/ListingDetails'
 import LostFound from './pages/LostFound'
 import LostFoundDetails from './pages/LostFoundDetails'
+import EditLostFound from './pages/EditLostFound'
 import Academic from './pages/Academic'
 import Events from './pages/Events'
 import Messages from './pages/Messages'
@@ -48,6 +49,11 @@ function App() {
           <Route
   path="/lost-found/:id"
   element={<LostFoundDetails />}
+/>
+
+<Route
+  path="/lost-found/:id/edit"
+  element={<EditLostFound />}
 />
 
           <Route

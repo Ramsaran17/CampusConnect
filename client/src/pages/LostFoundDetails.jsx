@@ -229,21 +229,28 @@ function LostFoundDetails() {
             </div>
 
             {isOwner && (
-              <div className="lost-found-owner-actions">
+  <div className="lost-found-owner-actions">
 
-                <button
-                  type="button"
-                  className="lost-found-delete-button"
-                  onClick={handleDelete}
-                  disabled={deleting}
-                >
-                  {deleting
-                    ? 'Deleting...'
-                    : 'Delete Post'}
-                </button>
+    <Link
+      to={`/lost-found/${id}/edit`}
+      className="lost-found-edit-button"
+    >
+      Edit Post
+    </Link>
 
-              </div>
-            )}
+    <button
+      type="button"
+      className="lost-found-delete-button"
+      onClick={handleDelete}
+      disabled={deleting}
+    >
+      {deleting
+        ? 'Deleting...'
+        : 'Delete Post'}
+    </button>
+
+  </div>
+)}
 
           </div>
 

@@ -228,3 +228,39 @@
   opacity: 0.7;
   cursor: not-allowed;
 }
+
+.lost-found-edit-button {
+  display: inline-block;
+  padding: 12px 22px;
+  border-radius: 8px;
+  background-color: #2563eb;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.lost-found-edit-button:hover {
+  background-color: #1d4ed8;
+}
+
+.lost-found-owner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 1px solid #e2e8f0;
+}
+
+@media (max-width: 600px) {
+  .lost-found-owner-actions {
+    flex-direction: column;
+  }
+
+  .lost-found-edit-button,
+  .lost-found-delete-button {
+    width: 100%;
+    text-align: center;
+  }
+}
