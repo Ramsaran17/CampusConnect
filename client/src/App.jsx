@@ -13,6 +13,7 @@ import LostFound from './pages/LostFound'
 import Academic from './pages/Academic'
 import Events from './pages/Events'
 import Messages from './pages/Messages'
+import EditListing from './pages/EditListing'
 
 function App() {
   return (
@@ -31,6 +32,11 @@ function App() {
           <Route
             path="/marketplace/:id"
             element={<ListingDetails />}
+          />
+
+          <Route
+            path="/marketplace/:id/edit"
+            element={<EditListing />}
           />
 
           <Route

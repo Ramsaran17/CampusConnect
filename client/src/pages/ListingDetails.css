@@ -33,11 +33,9 @@
 .listing-details-image {
   min-height: 500px;
   background-color: #f1f5f9;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   color: #64748b;
   font-size: 18px;
 }
@@ -142,28 +140,71 @@
   line-height: 1.6;
 }
 
+.listing-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 15px;
+}
+
 .contact-seller-button {
   display: inline-block;
-  margin-top: 10px;
   padding: 12px 22px;
   border-radius: 8px;
   background-color: #1e293b;
   color: white;
   text-decoration: none;
+  font-size: 16px;
+  box-sizing: border-box;
 }
 
 .contact-seller-button:hover {
   background-color: #334155;
 }
 
+.edit-listing-button {
+  display: inline-block;
+  padding: 12px 22px;
+  border-radius: 8px;
+  background-color: #2563eb;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.edit-listing-button:hover {
+  background-color: #1d4ed8;
+}
+
+.delete-listing-button {
+  display: inline-block;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 8px;
+  background-color: #dc2626;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 16px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.delete-listing-button:hover {
+  background-color: #b91c1c;
+}
+
+.delete-listing-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .listing-not-found {
   min-height: 70vh;
-
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
   text-align: center;
 }
 
@@ -185,9 +226,7 @@
   text-decoration: underline;
 }
 
-
 /* Tablet */
-
 @media (max-width: 900px) {
   .listing-details-card {
     grid-template-columns: 1fr;
@@ -202,9 +241,7 @@
   }
 }
 
-
 /* Mobile */
-
 @media (max-width: 600px) {
   .listing-details-page {
     padding: 30px 15px;
@@ -224,5 +261,16 @@
 
   .listing-information {
     grid-template-columns: 1fr;
+  }
+
+  .listing-action-buttons {
+    flex-direction: column;
+  }
+
+  .contact-seller-button,
+  .edit-listing-button,
+  .delete-listing-button {
+    width: 100%;
+    text-align: center;
   }
 }

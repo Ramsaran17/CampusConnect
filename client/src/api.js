@@ -150,16 +150,19 @@ export const updateListing = async (id, listingData) => {
     {
       method: 'PUT',
       headers: {
+        'Content-Type': 'application/json',
         ...getAuthHeaders(),
       },
-      body: listingData,
+      body: JSON.stringify(listingData),
     }
   )
 
   const data = await response.json()
 
   if (!response.ok) {
-    throw new Error(data.message || 'Failed to update listing')
+    throw new Error(
+      data.message || 'Failed to update listing'
+    )
   }
 
   return data
