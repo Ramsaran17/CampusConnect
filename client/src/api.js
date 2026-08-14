@@ -121,18 +121,24 @@ export const getListing = async (id) => {
 }
 
 export const createListing = async (listingData) => {
-  const response = await fetch(`${API_URL}/api/marketplace`, {
-    method: 'POST',
-    headers: {
-      ...getAuthHeaders(),
-    },
-    body: listingData,
-  })
+  const response = await fetch(
+    `${API_URL}/api/marketplace`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(listingData),
+    }
+  )
 
   const data = await response.json()
 
   if (!response.ok) {
-    throw new Error(data.message || 'Failed to create listing')
+    throw new Error(
+      data.message || 'Failed to create listing'
+    )
   }
 
   return data

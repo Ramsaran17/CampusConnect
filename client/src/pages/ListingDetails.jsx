@@ -1,68 +1,55 @@
 import { Link, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { getListing } from '../api'
 import './ListingDetails.css'
-
-const sampleListings = [
-  {
-    id: 'sample-1',
-    title: 'Study Table',
-    description: 'Wooden study table in good condition.',
-    category: 'Furniture',
-    condition: 'Good',
-    location: 'Hostel 3',
-    price: 1200,
-    isFree: false,
-    image: null,
-  },
-  {
-    id: 'sample-2',
-    title: 'Scientific Calculator',
-    description:
-      'Calculator suitable for engineering students.',
-    category: 'Electronics',
-    condition: 'Used',
-    location: 'Hostel 1',
-    price: 500,
-    isFree: false,
-    image: null,
-  },
-  {
-    id: 'sample-3',
-    title: 'Engineering Books',
-    description:
-      'Previous semester engineering textbooks.',
-    category: 'Books',
-    condition: 'Good',
-    location: 'Library',
-    price: 0,
-    isFree: true,
-    image: null,
-  },
-]
 
 function ListingDetails() {
   const { id } = useParams()
 
-  const savedListings = JSON.parse(
-    localStorage.getItem('marketplaceListings') || '[]'
-  )
+  const [item, setItem] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  const allListings = [
-    ...savedListings,
-    ...sampleListings,
-  ]
+  useEffect(() => {
+    loadListing()
+  }, [id])
 
-  const item = allListings.find(
-    (listing) => String(listing.id) === String(id)
-  )
+  const loadListing = async () => {
+    try {
+      setLoading(true)
+      setError('')
 
-  if (!item) {
+      const data = await getListing(id)
+
+      setItem(data.listing)
+    } catch (error) {
+      console.error('Failed to load listing:', error)
+
+      setError(
+        error.message || 'Failed to load listing'
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="listing-not-found">
+        <h1>Loading...</h1>
+      </div>
+    )
+  }
+
+  if (error || !item) {
     return (
       <div className="listing-not-found">
 
         <h1>Item Not Found</h1>
 
         <p>
-          Sorry, this listing is no longer available.
+          {error ||
+            'Sorry, this listing is no longer available.'}
         </p>
 
         <Link to="/marketplace">
@@ -120,9 +107,13 @@ function ListingDetails() {
 
             <div className="listing-tags">
 
-              <span>{item.category}</span>
+              <span>
+                {item.category}
+              </span>
 
-              <span>{item.condition}</span>
+              <span>
+                {item.condition}
+              </span>
 
             </div>
 
@@ -133,8 +124,13 @@ function ListingDetails() {
                 <span>📍</span>
 
                 <div>
-                  <small>Pickup Location</small>
-                  <p>{item.location}</p>
+                  <small>
+                    Pickup Location
+                  </small>
+
+                  <p>
+                    {item.location}
+                  </p>
                 </div>
 
               </div>
@@ -144,8 +140,13 @@ function ListingDetails() {
                 <span>🏷️</span>
 
                 <div>
-                  <small>Category</small>
-                  <p>{item.category}</p>
+                  <small>
+                    Category
+                  </small>
+
+                  <p>
+                    {item.category}
+                  </p>
                 </div>
 
               </div>
@@ -155,8 +156,13 @@ function ListingDetails() {
                 <span>✨</span>
 
                 <div>
-                  <small>Condition</small>
-                  <p>{item.condition}</p>
+                  <small>
+                    Condition
+                  </small>
+
+                  <p>
+                    {item.condition}
+                  </p>
                 </div>
 
               </div>
@@ -166,7 +172,9 @@ function ListingDetails() {
                 <span>💰</span>
 
                 <div>
-                  <small>Price</small>
+                  <small>
+                    Price
+                  </small>
 
                   <p>
                     {item.isFree
@@ -182,11 +190,14 @@ function ListingDetails() {
 
             <div className="seller-section">
 
-              <h2>Interested in this item?</h2>
+              <h2>
+                Interested in this item?
+              </h2>
 
               <p>
-                Contact the seller through CampusConnect
-                to discuss the item and arrange a meeting.
+                Contact the seller through
+                CampusConnect to discuss the item
+                and arrange a meeting.
               </p>
 
               <Link

@@ -1,58 +1,35 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { getListings } from '../api'
 import ListingCard from '../components/ListingCard'
 import './Marketplace.css'
 
-const sampleListings = [
-  {
-    id: 'sample-1',
-    title: 'Study Table',
-    description: 'Wooden study table in good condition.',
-    category: 'Furniture',
-    condition: 'Good',
-    location: 'Hostel 3',
-    price: 1200,
-    isFree: false,
-    image: null,
-  },
-  {
-    id: 'sample-2',
-    title: 'Scientific Calculator',
-    description:
-      'Calculator suitable for engineering students.',
-    category: 'Electronics',
-    condition: 'Used',
-    location: 'Hostel 1',
-    price: 500,
-    isFree: false,
-    image: null,
-  },
-  {
-    id: 'sample-3',
-    title: 'Engineering Books',
-    description:
-      'Previous semester engineering textbooks.',
-    category: 'Books',
-    condition: 'Good',
-    location: 'Library',
-    price: 0,
-    isFree: true,
-    image: null,
-  },
-]
-
 function Marketplace() {
-  const [listings, setListings] = useState(sampleListings)
+  const [listings, setListings] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const savedListings = JSON.parse(
-      localStorage.getItem('marketplaceListings') || '[]'
-    )
+    const fetchListings = async () => {
+      try {
+        const data = await getListings()
 
-    setListings([
-      ...savedListings,
-      ...sampleListings,
-    ])
+        const formattedListings = data.listings.map(
+          (listing) => ({
+            ...listing,
+            id: listing._id,
+          })
+        )
+
+        setListings(formattedListings)
+      } catch (error) {
+        console.error('Failed to fetch listings:', error)
+        alert(error.message || 'Failed to fetch listings')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchListings()
   }, [])
 
   return (
@@ -67,8 +44,11 @@ function Marketplace() {
           community.
         </p>
 
-        <Link to="/marketplace/create">
-          <button>Post an Item</button>
+        <Link
+          to="/marketplace/create"
+          className="post-item-button"
+        >
+          Post an Item
         </Link>
 
       </section>
@@ -77,16 +57,26 @@ function Marketplace() {
 
         <h2>Available Items</h2>
 
-        <div className="listings-grid">
+        {loading ? (
+          <p className="no-listings">
+            Loading items...
+          </p>
+        ) : listings.length === 0 ? (
+          <p className="no-listings">
+            No items have been posted yet.
+          </p>
+        ) : (
+          <div className="listings-grid">
 
-          {listings.map((item) => (
-            <ListingCard
-              key={item.id}
-              item={item}
-            />
-          ))}
+            {listings.map((item) => (
+              <ListingCard
+                key={item.id}
+                item={item}
+              />
+            ))}
 
-        </div>
+          </div>
+        )}
 
       </section>
 
