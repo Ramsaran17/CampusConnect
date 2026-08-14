@@ -10,6 +10,7 @@ import Marketplace from './pages/Marketplace'
 import CreateListing from './pages/CreateListing'
 import ListingDetails from './pages/ListingDetails'
 import LostFound from './pages/LostFound'
+import LostFoundDetails from './pages/LostFoundDetails'
 import Academic from './pages/Academic'
 import Events from './pages/Events'
 import Messages from './pages/Messages'
@@ -43,6 +44,11 @@ function App() {
             path="/lost-found"
             element={<LostFound />}
           />
+
+          <Route
+  path="/lost-found/:id"
+  element={<LostFoundDetails />}
+/>
 
           <Route
             path="/academic"
