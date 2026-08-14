@@ -1,69 +1,60 @@
 import { useEffect, useState } from 'react'
+import {
+  getEvents,
+  createEvent,
+} from '../api'
 import './Events.css'
-
-const sampleEvents = [
-  {
-    id: 'sample-event-1',
-    title: 'Campus Coding Contest',
-    description:
-      'A coding competition for students to test their problem-solving skills.',
-    category: 'Technical',
-    date: '2026-08-20',
-    time: '10:00 AM',
-    venue: 'Computer Centre',
-    organizer: 'Coding Club',
-    image: null,
-  },
-  {
-    id: 'sample-event-2',
-    title: 'Cultural Night',
-    description:
-      'An evening filled with music, dance and cultural performances.',
-    category: 'Cultural',
-    date: '2026-08-25',
-    time: '6:00 PM',
-    venue: 'Main Auditorium',
-    organizer: 'Cultural Committee',
-    image: null,
-  },
-  {
-    id: 'sample-event-3',
-    title: 'Badminton Tournament',
-    description:
-      'Inter-hostel badminton tournament for students.',
-    category: 'Sports',
-    date: '2026-08-28',
-    time: '4:00 PM',
-    venue: 'Sports Complex',
-    organizer: 'Sports Committee',
-    image: null,
-  },
-]
 
 function Events() {
   const [events, setEvents] = useState([])
   const [search, setSearch] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState('All')
+  const [categoryFilter, setCategoryFilter] =
+    useState('All')
   const [showForm, setShowForm] = useState(false)
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [category, setCategory] = useState('')
-  const [date, setDate] = useState('')
-  const [time, setTime] = useState('')
-  const [venue, setVenue] = useState('')
   const [organizer, setOrganizer] = useState('')
-  const [image, setImage] = useState(null)
+  const [date, setDate] = useState('')
+  const [startTime, setStartTime] = useState('')
+  const [endTime, setEndTime] = useState('')
+  const [location, setLocation] = useState('')
+  const [category, setCategory] = useState('')
+  const [image, setImage] = useState('')
+  const [registrationLink, setRegistrationLink] =
+    useState('')
+
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    const savedEvents = JSON.parse(
-      localStorage.getItem('campusEvents') || '[]'
-    )
-
-    setEvents([...savedEvents, ...sampleEvents])
+    loadEvents()
   }, [])
 
-  const handleSubmit = (event) => {
+  const loadEvents = async () => {
+    try {
+      setLoading(true)
+      setError('')
+
+      const data = await getEvents()
+
+      setEvents(data.events || [])
+    } catch (error) {
+      console.error(
+        'Failed to load events:',
+        error
+      )
+
+      setError(
+        error.message || 'Failed to load events'
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     if (!title.trim()) {
@@ -76,8 +67,8 @@ function Events() {
       return
     }
 
-    if (!category) {
-      alert('Please select an event category')
+    if (!organizer.trim()) {
+      alert('Please enter the organizer name')
       return
     }
 
@@ -86,109 +77,121 @@ function Events() {
       return
     }
 
-    if (!time) {
-      alert('Please select an event time')
+    if (!startTime) {
+      alert('Please select the start time')
       return
     }
 
-    if (!venue.trim()) {
-      alert('Please enter the event venue')
+    if (!location.trim()) {
+      alert('Please enter the event location')
       return
     }
 
-    if (!organizer.trim()) {
-      alert('Please enter the organizer name')
+    if (!category.trim()) {
+      alert('Please enter the event category')
       return
     }
 
-    const saveEvent = (imageData = null) => {
-      const newEvent = {
-        id: Date.now().toString(),
+    try {
+      setSubmitting(true)
+
+      await createEvent({
         title: title.trim(),
         description: description.trim(),
-        category,
-        date,
-        time,
-        venue: venue.trim(),
         organizer: organizer.trim(),
-        image: imageData,
-      }
+        date,
+        startTime,
+        endTime,
+        location: location.trim(),
+        category: category.trim(),
+        image: image.trim(),
+        registrationLink:
+          registrationLink.trim(),
+      })
 
-      const existingEvents = JSON.parse(
-        localStorage.getItem('campusEvents') || '[]'
-      )
-
-      localStorage.setItem(
-        'campusEvents',
-        JSON.stringify([
-          newEvent,
-          ...existingEvents,
-        ])
-      )
-
-      setEvents((currentEvents) => [
-        newEvent,
-        ...currentEvents,
-      ])
+      alert('Event added successfully!')
 
       setTitle('')
       setDescription('')
-      setCategory('')
-      setDate('')
-      setTime('')
-      setVenue('')
       setOrganizer('')
-      setImage(null)
+      setDate('')
+      setStartTime('')
+      setEndTime('')
+      setLocation('')
+      setCategory('')
+      setImage('')
+      setRegistrationLink('')
       setShowForm(false)
 
-      alert('Event added successfully!')
-    }
+      await loadEvents()
+    } catch (error) {
+      console.error(
+        'Create event error:',
+        error
+      )
 
-    if (image) {
-      const reader = new FileReader()
-
-      reader.onload = () => {
-        saveEvent(reader.result)
-      }
-
-      reader.readAsDataURL(image)
-    } else {
-      saveEvent()
+      alert(
+        error.message || 'Failed to create event'
+      )
+    } finally {
+      setSubmitting(false)
     }
   }
 
-  const filteredEvents = events.filter((event) => {
-    const searchText = search.toLowerCase()
+  const filteredEvents = events.filter(
+    (event) => {
+      const searchText =
+        search.toLowerCase()
 
-    const matchesSearch =
-      event.title.toLowerCase().includes(searchText) ||
-      event.description.toLowerCase().includes(searchText) ||
-      event.venue.toLowerCase().includes(searchText) ||
-      event.organizer.toLowerCase().includes(searchText)
+      const matchesSearch =
+        (event.title || '')
+          .toLowerCase()
+          .includes(searchText) ||
+        (event.description || '')
+          .toLowerCase()
+          .includes(searchText) ||
+        (event.location || '')
+          .toLowerCase()
+          .includes(searchText) ||
+        (event.organizer || '')
+          .toLowerCase()
+          .includes(searchText)
 
-    const matchesCategory =
-      categoryFilter === 'All' ||
-      event.category === categoryFilter
+      const matchesCategory =
+        categoryFilter === 'All' ||
+        event.category === categoryFilter
 
-    return matchesSearch && matchesCategory
-  })
+      return (
+        matchesSearch &&
+        matchesCategory
+      )
+    }
+  )
 
   return (
     <div className="events-page">
 
       <section className="events-header">
+
         <h1>Campus Events</h1>
 
         <p>
-          Discover and share events happening around campus.
+          Discover and share events happening around
+          campus.
         </p>
 
         <button
+          type="button"
           className="add-event-button"
-          onClick={() => setShowForm(!showForm)}
+          onClick={() =>
+            setShowForm((current) => !current)
+          }
         >
-          {showForm ? 'Close Form' : 'Add Event'}
+          {showForm
+            ? 'Close Form'
+            : 'Add Event'}
         </button>
+
       </section>
 
       {showForm && (
@@ -219,9 +222,26 @@ function Events() {
                 <textarea
                   value={description}
                   onChange={(event) =>
-                    setDescription(event.target.value)
+                    setDescription(
+                      event.target.value
+                    )
                   }
                   placeholder="Describe the event..."
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Organizer</label>
+
+                <input
+                  type="text"
+                  value={organizer}
+                  onChange={(event) =>
+                    setOrganizer(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Example: Coding Club"
                 />
               </div>
 
@@ -279,13 +299,15 @@ function Events() {
                 </div>
 
                 <div className="form-group">
-                  <label>Time</label>
+                  <label>Start Time</label>
 
                   <input
                     type="time"
-                    value={time}
+                    value={startTime}
                     onChange={(event) =>
-                      setTime(event.target.value)
+                      setStartTime(
+                        event.target.value
+                      )
                     }
                   />
                 </div>
@@ -293,51 +315,76 @@ function Events() {
               </div>
 
               <div className="form-group">
-                <label>Venue</label>
+                <label>End Time</label>
+
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(event) =>
+                    setEndTime(
+                      event.target.value
+                    )
+                  }
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Location</label>
 
                 <input
                   type="text"
-                  value={venue}
+                  value={location}
                   onChange={(event) =>
-                    setVenue(event.target.value)
+                    setLocation(
+                      event.target.value
+                    )
                   }
                   placeholder="Example: Main Auditorium"
                 />
               </div>
 
               <div className="form-group">
-                <label>Organizer</label>
+                <label>Event Image URL</label>
 
                 <input
-                  type="text"
-                  value={organizer}
+                  type="url"
+                  value={image}
                   onChange={(event) =>
-                    setOrganizer(event.target.value)
+                    setImage(event.target.value)
                   }
-                  placeholder="Example: Coding Club"
+                  placeholder="https://example.com/image.jpg"
                 />
               </div>
 
               <div className="form-group">
-                <label>Event Image</label>
+                <label>
+                  Registration Link
+                </label>
 
                 <input
-                  type="file"
-                  accept="image/*"
+                  type="url"
+                  value={registrationLink}
                   onChange={(event) =>
-                    setImage(event.target.files[0])
+                    setRegistrationLink(
+                      event.target.value
+                    )
                   }
+                  placeholder="https://example.com/register"
                 />
               </div>
 
               <button
                 className="submit-event-button"
                 type="submit"
+                disabled={submitting}
               >
-                Add Event
+                {submitting
+                  ? 'Adding...'
+                  : 'Add Event'}
               </button>
 
             </form>
+
           </div>
 
         </section>
@@ -359,7 +406,9 @@ function Events() {
           <select
             value={categoryFilter}
             onChange={(event) =>
-              setCategoryFilter(event.target.value)
+              setCategoryFilter(
+                event.target.value
+              )
             }
           >
             <option value="All">
@@ -395,13 +444,23 @@ function Events() {
 
         <h2>Upcoming Events</h2>
 
-        {filteredEvents.length > 0 ? (
+        {loading ? (
+          <div className="no-events">
+            <h3>Loading events...</h3>
+          </div>
+        ) : error ? (
+          <div className="no-events">
+            <h3>Unable to load events</h3>
+            <p>{error}</p>
+          </div>
+        ) : filteredEvents.length > 0 ? (
           <div className="events-grid">
 
             {filteredEvents.map((event) => (
+
               <div
                 className="event-card"
-                key={event.id}
+                key={event._id}
               >
 
                 <div className="event-image">
@@ -440,11 +499,14 @@ function Events() {
                     </span>
 
                     <span>
-                      🕐 {event.time}
+                      🕐 {event.startTime}
+                      {event.endTime
+                        ? ` - ${event.endTime}`
+                        : ''}
                     </span>
 
                     <span>
-                      📍 {event.venue}
+                      📍 {event.location}
                     </span>
 
                     <span>
@@ -456,16 +518,19 @@ function Events() {
                 </div>
 
               </div>
+
             ))}
 
           </div>
         ) : (
           <div className="no-events">
+
             <h3>No events found</h3>
 
             <p>
               Try changing your search or category.
             </p>
+
           </div>
         )}
 
