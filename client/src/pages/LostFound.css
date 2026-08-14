@@ -276,3 +276,6 @@
     flex-direction: column;
   }
 }
+.form-group input[type="date"] {
+  color-scheme: light;
+}
