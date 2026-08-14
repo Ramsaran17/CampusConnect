@@ -524,3 +524,154 @@ export const deleteEvent = async (id) => {
 
   return data
 }
+
+/* =========================
+   MESSAGES
+========================= */
+
+export const getConversations = async () => {
+  const response = await fetch(
+    `${API_URL}/api/messages/conversations`,
+    {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        'Failed to fetch conversations'
+    )
+  }
+
+  return data
+}
+
+export const createConversation = async (userId) => {
+  const response = await fetch(
+    `${API_URL}/api/messages/conversations`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({
+        userId,
+      }),
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        'Failed to create conversation'
+    )
+  }
+
+  return data
+}
+
+export const getMessages = async (conversationId) => {
+  const response = await fetch(
+    `${API_URL}/api/messages/conversations/${conversationId}`,
+    {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        'Failed to fetch messages'
+    )
+  }
+
+  return data
+}
+
+export const sendMessage = async (
+  conversationId,
+  text
+) => {
+  const response = await fetch(
+    `${API_URL}/api/messages/conversations/${conversationId}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({
+        text,
+      }),
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        'Failed to send message'
+    )
+  }
+
+  return data
+}
+
+export const markMessageAsRead = async (
+  messageId
+) => {
+  const response = await fetch(
+    `${API_URL}/api/messages/${messageId}/read`,
+    {
+      method: 'PUT',
+      headers: {
+        ...getAuthHeaders(),
+      },
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        'Failed to mark message as read'
+    )
+  }
+
+  return data
+}
+
+export const getUsers = async (search = '') => {
+  const response = await fetch(
+    `${API_URL}/api/users?search=${encodeURIComponent(search)}`,
+    {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || 'Failed to fetch users'
+    )
+  }
+
+  return data
+}

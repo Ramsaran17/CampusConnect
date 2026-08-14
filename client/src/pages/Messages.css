@@ -258,3 +258,128 @@
     border-right: none;
   }
 }
+
+.conversation-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.new-chat-button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 7px;
+  background-color: #2563eb;
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.new-chat-button:hover {
+  background-color: #1d4ed8;
+}
+
+.new-chat-panel {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.new-chat-panel input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.user-search-results {
+  margin-top: 10px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.user-search-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  background-color: white;
+  text-align: left;
+  cursor: pointer;
+}
+
+.user-search-item:hover {
+  background-color: #f8fafc;
+}
+
+.user-search-avatar {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: #1e293b;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.user-search-info {
+  min-width: 0;
+}
+
+.user-search-info strong {
+  display: block;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.user-search-info span {
+  display: block;
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.new-chat-status {
+  margin: 12px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.messages-error {
+  padding: 10px 15px;
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border-bottom: 1px solid #fecaca;
+  font-size: 14px;
+}
+
+.empty-chat-icon {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 15px;
+  border-radius: 50%;
+  background-color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.empty-chat p {
+  max-width: 420px;
+  line-height: 1.6;
+}
+
+.message-input-area button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
