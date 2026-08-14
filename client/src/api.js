@@ -299,3 +299,119 @@ export const deleteLostFoundPost = async (id) => {
 
   return data
 }
+
+/* =========================
+   ACADEMIC RESOURCES
+========================= */
+
+export const getAcademicResources = async () => {
+  const response = await fetch(
+    `${API_URL}/api/academic-resources`
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        'Failed to fetch academic resources'
+    )
+  }
+
+  return data
+}
+
+export const getAcademicResource = async (id) => {
+  const response = await fetch(
+    `${API_URL}/api/academic-resources/${id}`
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        'Failed to fetch academic resource'
+    )
+  }
+
+  return data
+}
+
+export const createAcademicResource = async (
+  resourceData
+) => {
+  const response = await fetch(
+    `${API_URL}/api/academic-resources`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(resourceData),
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        'Failed to create academic resource'
+    )
+  }
+
+  return data
+}
+
+export const updateAcademicResource = async (
+  id,
+  resourceData
+) => {
+  const response = await fetch(
+    `${API_URL}/api/academic-resources/${id}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(resourceData),
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        'Failed to update academic resource'
+    )
+  }
+
+  return data
+}
+
+export const deleteAcademicResource = async (id) => {
+  const response = await fetch(
+    `${API_URL}/api/academic-resources/${id}`,
+    {
+      method: 'DELETE',
+      headers: {
+        ...getAuthHeaders(),
+      },
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        'Failed to delete academic resource'
+    )
+  }
+
+  return data
+}

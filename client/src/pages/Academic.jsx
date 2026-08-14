@@ -1,62 +1,91 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import {
+  getAcademicResources,
+  createAcademicResource,
+} from '../api'
 import './Academic.css'
 
-const sampleResources = [
+const resourceTypeOptions = [
   {
-    id: 'sample-academic-1',
-    title: 'Digital Communication Previous Year Paper',
-    subject: 'Digital Communication',
-    type: 'Previous Year Paper',
-    description:
-      'Previous year question paper for Digital Communication.',
-    link: '',
-    file: null,
+    value: 'question-paper',
+    label: 'Previous Year Paper',
   },
   {
-    id: 'sample-academic-2',
-    title: 'Data Structures Notes',
-    subject: 'Data Structures',
-    type: 'Notes',
-    description:
-      'Complete notes covering important Data Structures topics.',
-    link: '',
-    file: null,
+    value: 'notes',
+    label: 'Notes',
   },
   {
-    id: 'sample-academic-3',
-    title: 'DBMS Study Material',
-    subject: 'DBMS',
-    type: 'Study Material',
-    description:
-      'Study material covering SQL, normalization and database concepts.',
-    link: '',
-    file: null,
+    value: 'study-material',
+    label: 'Study Material',
+  },
+  {
+    value: 'assignment',
+    label: 'Assignment',
+  },
+  {
+    value: 'other',
+    label: 'Other',
   },
 ]
 
+const getResourceTypeLabel = (value) => {
+  const option = resourceTypeOptions.find(
+    (item) => item.value === value
+  )
+
+  return option ? option.label : value
+}
+
 function Academic() {
   const [resources, setResources] = useState([])
+
   const [search, setSearch] = useState('')
   const [subjectFilter, setSubjectFilter] = useState('All')
   const [typeFilter, setTypeFilter] = useState('All')
+
   const [showForm, setShowForm] = useState(false)
 
   const [title, setTitle] = useState('')
-  const [subject, setSubject] = useState('')
-  const [type, setType] = useState('')
   const [description, setDescription] = useState('')
-  const [link, setLink] = useState('')
-  const [file, setFile] = useState(null)
+  const [subject, setSubject] = useState('')
+  const [department, setDepartment] = useState('')
+  const [year, setYear] = useState('')
+  const [semester, setSemester] = useState('')
+  const [resourceType, setResourceType] = useState('')
+  const [fileUrl, setFileUrl] = useState('')
+
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    const savedResources = JSON.parse(
-      localStorage.getItem('academicResources') || '[]'
-    )
-
-    setResources([...savedResources, ...sampleResources])
+    loadResources()
   }, [])
 
-  const handleSubmit = (event) => {
+  const loadResources = async () => {
+    try {
+      setLoading(true)
+      setError('')
+
+      const data = await getAcademicResources()
+
+      setResources(data.resources || [])
+    } catch (error) {
+      console.error(
+        'Failed to load academic resources:',
+        error
+      )
+
+      setError(
+        error.message ||
+          'Failed to load academic resources'
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     if (!title.trim()) {
@@ -69,146 +98,141 @@ function Academic() {
       return
     }
 
-    if (!type) {
+    if (!department.trim()) {
+      alert('Please enter a department')
+      return
+    }
+
+    if (!year) {
+      alert('Please select a year')
+      return
+    }
+
+    if (!semester) {
+      alert('Please select a semester')
+      return
+    }
+
+    if (!resourceType) {
       alert('Please select a resource type')
       return
     }
 
-    if (!description.trim()) {
-      alert('Please enter a description')
+    if (!fileUrl.trim()) {
+      alert('Please provide a resource URL')
       return
     }
 
-    if (!link.trim() && !file) {
-      alert('Please provide a resource link or upload a file')
-      return
-    }
+    try {
+      setSubmitting(true)
 
-    const saveResource = (fileData = null) => {
-      const newResource = {
-        id: Date.now().toString(),
+      await createAcademicResource({
         title: title.trim(),
-        subject: subject.trim(),
-        type,
         description: description.trim(),
-        link: link.trim(),
-        file: fileData,
-      }
+        subject: subject.trim(),
+        department: department.trim(),
+        year: Number(year),
+        semester: Number(semester),
+        resourceType,
+        fileUrl: fileUrl.trim(),
+      })
 
-      const existingResources = JSON.parse(
-        localStorage.getItem('academicResources') || '[]'
-      )
-
-      localStorage.setItem(
-        'academicResources',
-        JSON.stringify([
-          newResource,
-          ...existingResources,
-        ])
-      )
-
-      setResources((currentResources) => [
-        newResource,
-        ...currentResources,
-      ])
+      alert('Academic resource added successfully!')
 
       setTitle('')
-      setSubject('')
-      setType('')
       setDescription('')
-      setLink('')
-      setFile(null)
+      setSubject('')
+      setDepartment('')
+      setYear('')
+      setSemester('')
+      setResourceType('')
+      setFileUrl('')
       setShowForm(false)
 
-      alert('Resource added successfully!')
-    }
+      await loadResources()
+    } catch (error) {
+      console.error(
+        'Create academic resource error:',
+        error
+      )
 
-    if (file) {
-      const reader = new FileReader()
-
-      reader.onload = () => {
-        saveResource({
-          name: file.name,
-          data: reader.result,
-        })
-      }
-
-      reader.readAsDataURL(file)
-    } else {
-      saveResource()
+      alert(
+        error.message ||
+          'Failed to create academic resource'
+      )
+    } finally {
+      setSubmitting(false)
     }
   }
 
-  const subjects = [
-    'All',
-    ...new Set(
-      resources.map((resource) => resource.subject)
-    ),
-  ]
+  const subjects = useMemo(() => {
+    const uniqueSubjects = [
+      ...new Set(
+        resources
+          .map((resource) => resource.subject)
+          .filter(Boolean)
+      ),
+    ]
 
-  const filteredResources = resources.filter((resource) => {
-    const searchText = search.toLowerCase()
+    return ['All', ...uniqueSubjects]
+  }, [resources])
 
-    const matchesSearch =
-      resource.title.toLowerCase().includes(searchText) ||
-      resource.subject.toLowerCase().includes(searchText) ||
-      resource.description.toLowerCase().includes(searchText)
+  const filteredResources = resources.filter(
+    (resource) => {
+      const searchText = search.toLowerCase()
 
-    const matchesSubject =
-      subjectFilter === 'All' ||
-      resource.subject === subjectFilter
+      const title =
+        resource.title?.toLowerCase() || ''
 
-    const matchesType =
-      typeFilter === 'All' ||
-      resource.type === typeFilter
+      const subject =
+        resource.subject?.toLowerCase() || ''
 
-    return (
-      matchesSearch &&
-      matchesSubject &&
-      matchesType
-    )
-  })
+      const description =
+        resource.description?.toLowerCase() || ''
 
-  const openResource = (resource) => {
-    if (resource.link) {
-      window.open(
-        resource.link,
-        '_blank',
-        'noopener,noreferrer'
+      const department =
+        resource.department?.toLowerCase() || ''
+
+      const matchesSearch =
+        title.includes(searchText) ||
+        subject.includes(searchText) ||
+        description.includes(searchText) ||
+        department.includes(searchText)
+
+      const matchesSubject =
+        subjectFilter === 'All' ||
+        resource.subject === subjectFilter
+
+      const matchesType =
+        typeFilter === 'All' ||
+        resource.resourceType === typeFilter
+
+      return (
+        matchesSearch &&
+        matchesSubject &&
+        matchesType
       )
+    }
+  )
+
+  const openResource = (fileUrl) => {
+    if (!fileUrl) {
+      alert('No resource URL available')
       return
     }
 
-    if (resource.file?.data) {
-      const newWindow = window.open()
-
-      if (newWindow) {
-        newWindow.document.write(`
-          <html>
-            <head>
-              <title>${resource.file.name}</title>
-            </head>
-            <body style="margin:0">
-              <iframe
-                src="${resource.file.data}"
-                style="width:100%;height:100vh;border:none;"
-              ></iframe>
-            </body>
-          </html>
-        `)
-        newWindow.document.close()
-      }
-
-      return
-    }
-
-    alert('No resource link or file available')
+    window.open(
+      fileUrl,
+      '_blank',
+      'noopener,noreferrer'
+    )
   }
 
   return (
     <div className="academic-page">
 
       <section className="academic-header">
+
         <h1>Academic Resources</h1>
 
         <p>
@@ -217,13 +241,17 @@ function Academic() {
         </p>
 
         <button
+          type="button"
           className="add-resource-button"
-          onClick={() => setShowForm(!showForm)}
+          onClick={() =>
+            setShowForm((current) => !current)
+          }
         >
           {showForm
             ? 'Close Form'
             : 'Add Resource'}
         </button>
+
       </section>
 
       {showForm && (
@@ -262,37 +290,99 @@ function Academic() {
               </div>
 
               <div className="form-group">
+                <label>Department</label>
+
+                <input
+                  type="text"
+                  value={department}
+                  onChange={(event) =>
+                    setDepartment(event.target.value)
+                  }
+                  placeholder="Example: ECE"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Year</label>
+
+                <select
+                  value={year}
+                  onChange={(event) =>
+                    setYear(event.target.value)
+                  }
+                >
+                  <option value="">
+                    Select year
+                  </option>
+
+                  <option value="1">
+                    1st Year
+                  </option>
+
+                  <option value="2">
+                    2nd Year
+                  </option>
+
+                  <option value="3">
+                    3rd Year
+                  </option>
+
+                  <option value="4">
+                    4th Year
+                  </option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Semester</label>
+
+                <select
+                  value={semester}
+                  onChange={(event) =>
+                    setSemester(event.target.value)
+                  }
+                >
+                  <option value="">
+                    Select semester
+                  </option>
+
+                  {Array.from(
+                    { length: 8 },
+                    (_, index) => (
+                      <option
+                        key={index + 1}
+                        value={index + 1}
+                      >
+                        Semester {index + 1}
+                      </option>
+                    )
+                  )}
+                </select>
+              </div>
+
+              <div className="form-group">
                 <label>Resource Type</label>
 
                 <select
-                  value={type}
+                  value={resourceType}
                   onChange={(event) =>
-                    setType(event.target.value)
+                    setResourceType(event.target.value)
                   }
                 >
                   <option value="">
                     Select resource type
                   </option>
 
-                  <option value="Previous Year Paper">
-                    Previous Year Paper
-                  </option>
-
-                  <option value="Notes">
-                    Notes
-                  </option>
-
-                  <option value="Study Material">
-                    Study Material
-                  </option>
-
-                  <option value="Assignment">
-                    Assignment
-                  </option>
-
-                  <option value="Other Resource">
-                    Other Resource
-                  </option>
+                  {resourceTypeOptions.map(
+                    (option) => (
+                      <option
+                        key={option.value}
+                        value={option.value}
+                      >
+                        {option.label}
+                      </option>
+                    )
+                  )}
                 </select>
               </div>
 
@@ -309,47 +399,35 @@ function Academic() {
               </div>
 
               <div className="form-group">
-                <label>Resource Link</label>
+                <label>Resource URL</label>
 
                 <input
                   type="url"
-                  value={link}
+                  value={fileUrl}
                   onChange={(event) =>
-                    setLink(event.target.value)
+                    setFileUrl(event.target.value)
                   }
                   placeholder="https://example.com/resource"
                 />
 
                 <small>
-                  You can provide a link instead of
-                  uploading a file.
-                </small>
-              </div>
-
-              <div className="form-group">
-                <label>Upload File</label>
-
-                <input
-                  type="file"
-                  onChange={(event) =>
-                    setFile(event.target.files[0])
-                  }
-                />
-
-                <small>
-                  You can upload a PDF, document, or
-                  other study material.
+                  Provide a Google Drive, GitHub,
+                  OneDrive, or other resource link.
                 </small>
               </div>
 
               <button
                 className="submit-resource-button"
                 type="submit"
+                disabled={submitting}
               >
-                Add Resource
+                {submitting
+                  ? 'Adding...'
+                  : 'Add Resource'}
               </button>
 
             </form>
+
           </div>
 
         </section>
@@ -396,86 +474,125 @@ function Academic() {
               All Types
             </option>
 
-            <option value="Previous Year Paper">
-              Previous Year Papers
-            </option>
-
-            <option value="Notes">
-              Notes
-            </option>
-
-            <option value="Study Material">
-              Study Material
-            </option>
-
-            <option value="Assignment">
-              Assignments
-            </option>
-
-            <option value="Other Resource">
-              Other Resources
-            </option>
+            {resourceTypeOptions.map(
+              (option) => (
+                <option
+                  key={option.value}
+                  value={option.value}
+                >
+                  {option.label}
+                </option>
+              )
+            )}
           </select>
 
         </div>
 
         <h2>Available Resources</h2>
 
-        {filteredResources.length > 0 ? (
+        {loading ? (
+          <div className="no-resources">
+            <h3>Loading resources...</h3>
+          </div>
+        ) : error ? (
+          <div className="no-resources">
+            <h3>Unable to load resources</h3>
+            <p>{error}</p>
+          </div>
+        ) : filteredResources.length > 0 ? (
           <div className="academic-grid">
 
-            {filteredResources.map((resource) => (
-              <div
-                className="academic-card"
-                key={resource.id}
-              >
+            {filteredResources.map(
+              (resource) => (
 
-                <div className="academic-card-icon">
-                  📚
-                </div>
+                <div
+                  className="academic-card"
+                  key={resource._id}
+                >
 
-                <div className="academic-card-content">
-
-                  <div className="academic-card-title">
-                    <h3>{resource.title}</h3>
-
-                    <span>
-                      {resource.type}
-                    </span>
+                  <div className="academic-card-icon">
+                    📚
                   </div>
 
-                  <p className="academic-subject">
-                    {resource.subject}
-                  </p>
+                  <div className="academic-card-content">
 
-                  <p className="academic-description">
-                    {resource.description}
-                  </p>
+                    <div className="academic-card-title">
 
-                  <button
-                    className="view-resource-button"
-                    onClick={() =>
-                      openResource(resource)
-                    }
-                  >
-                    {resource.link || resource.file
-                      ? 'Open Resource'
-                      : 'View Resource'}
-                  </button>
+                      <h3>
+                        {resource.title}
+                      </h3>
+
+                      <span>
+                        {getResourceTypeLabel(
+                          resource.resourceType
+                        )}
+                      </span>
+
+                    </div>
+
+                    <p className="academic-subject">
+                      {resource.subject}
+                    </p>
+
+                    <p className="academic-description">
+                      {resource.description ||
+                        'No description provided.'}
+                    </p>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                        color: '#475569',
+                        fontSize: '14px',
+                        marginTop: '10px',
+                      }}
+                    >
+                      <span>
+                        Department:{' '}
+                        {resource.department}
+                      </span>
+
+                      <span>
+                        Year: {resource.year}
+                      </span>
+
+                      <span>
+                        Semester:{' '}
+                        {resource.semester}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="view-resource-button"
+                      onClick={() =>
+                        openResource(
+                          resource.fileUrl
+                        )
+                      }
+                    >
+                      Open Resource
+                    </button>
+
+                  </div>
 
                 </div>
 
-              </div>
-            ))}
+              )
+            )}
 
           </div>
         ) : (
           <div className="no-resources">
+
             <h3>No resources found</h3>
 
             <p>
               Try changing your search or filters.
             </p>
+
           </div>
         )}
 
