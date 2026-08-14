@@ -415,3 +415,112 @@ export const deleteAcademicResource = async (id) => {
 
   return data
 }
+
+/* =========================
+   EVENTS
+========================= */
+
+export const getEvents = async () => {
+  const response = await fetch(
+    `${API_URL}/api/events`
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || 'Failed to fetch events'
+    )
+  }
+
+  return data
+}
+
+export const getEvent = async (id) => {
+  const response = await fetch(
+    `${API_URL}/api/events/${id}`
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || 'Failed to fetch event'
+    )
+  }
+
+  return data
+}
+
+export const createEvent = async (eventData) => {
+  const response = await fetch(
+    `${API_URL}/api/events`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(eventData),
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || 'Failed to create event'
+    )
+  }
+
+  return data
+}
+
+export const updateEvent = async (
+  id,
+  eventData
+) => {
+  const response = await fetch(
+    `${API_URL}/api/events/${id}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(eventData),
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || 'Failed to update event'
+    )
+  }
+
+  return data
+}
+
+export const deleteEvent = async (id) => {
+  const response = await fetch(
+    `${API_URL}/api/events/${id}`,
+    {
+      method: 'DELETE',
+      headers: {
+        ...getAuthHeaders(),
+      },
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || 'Failed to delete event'
+    )
+  }
+
+  return data
+}
