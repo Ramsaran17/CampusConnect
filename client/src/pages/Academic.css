@@ -72,6 +72,8 @@
   font-size: 15px;
   box-sizing: border-box;
   background-color: white;
+  color: #0f172a;
+  color-scheme: light;
 }
 
 .form-group textarea {
@@ -120,6 +122,13 @@
   border-radius: 8px;
   font-size: 15px;
   background-color: white;
+  color: #0f172a;
+  color-scheme: light;
+}
+
+.academic-toolbar input::placeholder {
+  color: #64748b;
+  opacity: 1;
 }
 
 .academic-toolbar input {
