@@ -1,0 +1,367 @@
+.event-details-page {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  padding: 50px 20px 70px;
+}
+
+.event-details-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.back-events {
+  display: inline-block;
+  margin-bottom: 25px;
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.back-events:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   MAIN CARD
+========================= */
+
+.event-details-card {
+  display: grid;
+  grid-template-columns: 42% 58%;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
+}
+
+/* =========================
+   IMAGE SECTION
+========================= */
+
+.event-details-image {
+  min-height: 580px;
+  background-color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 72px;
+  border-right: 1px solid #e2e8f0;
+}
+
+.event-details-image img {
+  width: 100%;
+  height: 100%;
+  min-height: 580px;
+  object-fit: cover;
+}
+
+/* =========================
+   CONTENT SECTION
+========================= */
+
+.event-details-content {
+  padding: 45px;
+}
+
+.event-details-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.event-details-title-row h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 38px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.event-details-category {
+  flex-shrink: 0;
+  padding: 8px 15px;
+  border-radius: 20px;
+  background-color: #eff6ff;
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* =========================
+   DESCRIPTION
+========================= */
+
+.event-details-description {
+  margin: 24px 0 0;
+  color: #64748b;
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+/* =========================
+   EVENT INFORMATION
+========================= */
+
+.event-details-information {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.event-information-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.event-information-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.event-information-item > span {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background-color: #f8fafc;
+  font-size: 21px;
+}
+
+.event-information-item small {
+  display: block;
+  margin-bottom: 5px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.event-information-item p {
+  margin: 0;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* =========================
+   CREATED BY
+========================= */
+
+.event-created-by {
+  margin-top: 35px;
+  padding-top: 28px;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.event-created-by h2 {
+  margin: 0 0 12px;
+  color: #0f172a;
+  font-size: 22px;
+}
+
+.event-created-by p {
+  margin: 5px 0;
+  color: #64748b;
+  font-size: 15px;
+}
+
+/* =========================
+   ACTION SECTION
+========================= */
+
+.event-details-actions {
+  margin-top: 30px;
+  padding-top: 28px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.event-action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* All buttons same size/style */
+
+.event-registration-button,
+.event-edit-button,
+.event-delete-button {
+  min-width: 150px;
+  padding: 12px 20px;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+/* Register */
+
+.event-registration-button {
+  border: none;
+  background-color: #1e293b;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.event-registration-button:hover {
+  background-color: #334155;
+}
+
+/* Edit */
+
+.event-edit-button {
+  display: inline-block;
+  background-color: #2563eb;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.event-edit-button:hover {
+  background-color: #1d4ed8;
+}
+
+/* Delete */
+
+.event-delete-button {
+  border: none;
+  background-color: #dc2626;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.event-delete-button:hover {
+  background-color: #b91c1c;
+}
+
+.event-delete-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* =========================
+   NOT FOUND / LOADING
+========================= */
+
+.event-details-not-found {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px;
+}
+
+.event-details-not-found h1 {
+  margin-bottom: 10px;
+  color: #0f172a;
+}
+
+.event-details-not-found p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.event-details-not-found a {
+  margin-top: 18px;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.event-details-not-found a:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width: 900px) {
+  .event-details-card {
+    grid-template-columns: 1fr;
+  }
+
+  .event-details-image {
+    min-height: 380px;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .event-details-image img {
+    min-height: 380px;
+  }
+
+  .event-details-content {
+    padding: 35px;
+  }
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 600px) {
+  .event-details-page {
+    padding: 30px 15px 50px;
+  }
+
+  .event-details-content {
+    padding: 25px 20px;
+  }
+
+  .event-details-title-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .event-details-title-row h1 {
+    font-size: 29px;
+  }
+
+  .event-details-category {
+    align-self: flex-start;
+  }
+
+  .event-details-description {
+    font-size: 16px;
+  }
+
+  .event-details-information {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .event-action-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .event-registration-button,
+  .event-edit-button,
+  .event-delete-button {
+    width: 100%;
+  }
+}

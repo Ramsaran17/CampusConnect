@@ -16,6 +16,8 @@ import Academic from './pages/Academic'
 import AcademicDetails from './pages/AcademicDetails'
 import EditAcademicResource from './pages/EditAcademicResource'
 import Events from './pages/Events'
+import EventDetails from './pages/EventDetails'
+import EditEvent from './pages/EditEvent'
 import Messages from './pages/Messages'
 import EditListing from './pages/EditListing'
 
@@ -77,6 +79,16 @@ function App() {
             path="/events"
             element={<Events />}
           />
+
+          <Route
+  path="/events/:id"
+  element={<EventDetails />}
+/>
+
+<Route
+  path="/events/:id/edit"
+  element={<EditEvent />}
+/>
 
         </Route>
 

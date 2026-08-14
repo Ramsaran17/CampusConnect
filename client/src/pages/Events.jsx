@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import {
   getEvents,
@@ -8,8 +9,7 @@ import './Events.css'
 function Events() {
   const [events, setEvents] = useState([])
   const [search, setSearch] = useState('')
-  const [categoryFilter, setCategoryFilter] =
-    useState('All')
+  const [categoryFilter, setCategoryFilter] = useState('All')
   const [showForm, setShowForm] = useState(false)
 
   const [title, setTitle] = useState('')
@@ -204,6 +204,7 @@ function Events() {
             <form onSubmit={handleSubmit}>
 
               <div className="form-group">
+
                 <label>Event Title</label>
 
                 <input
@@ -214,9 +215,11 @@ function Events() {
                   }
                   placeholder="Example: Coding Contest"
                 />
+
               </div>
 
               <div className="form-group">
+
                 <label>Description</label>
 
                 <textarea
@@ -228,9 +231,11 @@ function Events() {
                   }
                   placeholder="Describe the event..."
                 />
+
               </div>
 
               <div className="form-group">
+
                 <label>Organizer</label>
 
                 <input
@@ -243,9 +248,11 @@ function Events() {
                   }
                   placeholder="Example: Coding Club"
                 />
+
               </div>
 
               <div className="form-group">
+
                 <label>Category</label>
 
                 <select
@@ -254,6 +261,7 @@ function Events() {
                     setCategory(event.target.value)
                   }
                 >
+
                   <option value="">
                     Select category
                   </option>
@@ -281,12 +289,15 @@ function Events() {
                   <option value="Other">
                     Other
                   </option>
+
                 </select>
+
               </div>
 
               <div className="event-date-time">
 
                 <div className="form-group">
+
                   <label>Date</label>
 
                   <input
@@ -296,9 +307,11 @@ function Events() {
                       setDate(event.target.value)
                     }
                   />
+
                 </div>
 
                 <div className="form-group">
+
                   <label>Start Time</label>
 
                   <input
@@ -310,11 +323,13 @@ function Events() {
                       )
                     }
                   />
+
                 </div>
 
               </div>
 
               <div className="form-group">
+
                 <label>End Time</label>
 
                 <input
@@ -326,9 +341,11 @@ function Events() {
                     )
                   }
                 />
+
               </div>
 
               <div className="form-group">
+
                 <label>Location</label>
 
                 <input
@@ -341,9 +358,11 @@ function Events() {
                   }
                   placeholder="Example: Main Auditorium"
                 />
+
               </div>
 
               <div className="form-group">
+
                 <label>Event Image URL</label>
 
                 <input
@@ -354,9 +373,11 @@ function Events() {
                   }
                   placeholder="https://example.com/image.jpg"
                 />
+
               </div>
 
               <div className="form-group">
+
                 <label>
                   Registration Link
                 </label>
@@ -371,6 +392,7 @@ function Events() {
                   }
                   placeholder="https://example.com/register"
                 />
+
               </div>
 
               <button
@@ -411,6 +433,7 @@ function Events() {
               )
             }
           >
+
             <option value="All">
               All Categories
             </option>
@@ -438,6 +461,7 @@ function Events() {
             <option value="Other">
               Other
             </option>
+
           </select>
 
         </div>
@@ -446,12 +470,17 @@ function Events() {
 
         {loading ? (
           <div className="no-events">
+
             <h3>Loading events...</h3>
+
           </div>
         ) : error ? (
           <div className="no-events">
+
             <h3>Unable to load events</h3>
+
             <p>{error}</p>
+
           </div>
         ) : filteredEvents.length > 0 ? (
           <div className="events-grid">
@@ -480,7 +509,9 @@ function Events() {
 
                   <div className="event-title-row">
 
-                    <h3>{event.title}</h3>
+                    <h3>
+                      {event.title}
+                    </h3>
 
                     <span className="event-category">
                       {event.category}
@@ -512,6 +543,17 @@ function Events() {
                     <span>
                       👤 {event.organizer}
                     </span>
+
+                  </div>
+
+                  <div className="event-card-actions">
+
+                    <Link
+                      to={`/events/${event._id}`}
+                      className="event-view-details-button"
+                    >
+                      View Details
+                    </Link>
 
                   </div>
 
