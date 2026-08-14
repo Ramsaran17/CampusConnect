@@ -3,6 +3,7 @@ import {
   createConversation,
   getConversations,
   getMessages,
+  getMe,
   getUsers,
   markMessageAsRead,
   sendMessage,
@@ -10,6 +11,8 @@ import {
 import './Messages.css'
 
 function Messages() {
+  const [currentUser, setCurrentUser] = useState(null)
+
   const [conversations, setConversations] = useState([])
   const [selectedConversation, setSelectedConversation] =
     useState(null)
@@ -23,8 +26,10 @@ function Messages() {
 
   const [loadingConversations, setLoadingConversations] =
     useState(true)
+
   const [loadingMessages, setLoadingMessages] =
     useState(false)
+
   const [loadingUsers, setLoadingUsers] =
     useState(false)
 
@@ -32,7 +37,7 @@ function Messages() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    loadConversations()
+    loadInitialData()
   }, [])
 
   useEffect(() => {
@@ -51,15 +56,21 @@ function Messages() {
     loadUsers(userSearch)
   }, [showNewChat, userSearch])
 
-  const loadConversations = async () => {
+  const loadInitialData = async () => {
     try {
       setLoadingConversations(true)
       setError('')
 
-      const data = await getConversations()
+      const [userData, conversationData] =
+        await Promise.all([
+          getMe(),
+          getConversations(),
+        ])
+
+      setCurrentUser(userData.user)
 
       const loadedConversations =
-        data.conversations || []
+        conversationData.conversations || []
 
       setConversations(loadedConversations)
 
@@ -72,13 +83,13 @@ function Messages() {
       }
     } catch (error) {
       console.error(
-        'Failed to load conversations:',
+        'Failed to load messaging data:',
         error
       )
 
       setError(
         error.message ||
-          'Failed to load conversations'
+          'Failed to load messages'
       )
     } finally {
       setLoadingConversations(false)
@@ -98,10 +109,24 @@ function Messages() {
 
       setMessages(loadedMessages)
 
+      /*
+        Mark only messages received from the
+        other user as read.
+      */
       for (const message of loadedMessages) {
-        if (!message.read) {
+        const senderId =
+          message.sender?._id
+
+        const isOwnMessage =
+          currentUser &&
+          String(senderId) ===
+            String(currentUser._id)
+
+        if (!isOwnMessage && !message.read) {
           try {
-            await markMessageAsRead(message._id)
+            await markMessageAsRead(
+              message._id
+            )
           } catch (readError) {
             console.error(
               'Failed to mark message as read:',
@@ -144,15 +169,28 @@ function Messages() {
     }
   }
 
-  const getOtherParticipant = (conversation) => {
+  /*
+    Get the participant who is NOT the
+    currently logged-in user.
+  */
+  const getOtherParticipant = (
+    conversation
+  ) => {
     if (
       !conversation ||
-      !conversation.participants
+      !Array.isArray(conversation.participants) ||
+      !currentUser
     ) {
       return null
     }
 
-    return conversation.participants[0] || null
+    return (
+      conversation.participants.find(
+        (participant) =>
+          String(participant?._id) !==
+          String(currentUser._id)
+      ) || null
+    )
   }
 
   const selectedUser = useMemo(
@@ -160,7 +198,10 @@ function Messages() {
       getOtherParticipant(
         selectedConversation
       ),
-    [selectedConversation]
+    [
+      selectedConversation,
+      currentUser,
+    ]
   )
 
   const formatMessageTime = (value) => {
@@ -168,13 +209,12 @@ function Messages() {
       return ''
     }
 
-    return new Date(value).toLocaleTimeString(
-      [],
-      {
-        hour: '2-digit',
-        minute: '2-digit',
-      }
-    )
+    const date = new Date(value)
+
+    return date.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    })
   }
 
   const formatConversationTime = (value) => {
@@ -224,19 +264,23 @@ function Messages() {
       setShowNewChat(false)
       setUserSearch('')
 
-      const alreadyExists =
-        conversations.some(
-          (conversation) =>
-            conversation._id ===
-            newConversation._id
-        )
+      setConversations((current) => {
+        const alreadyExists =
+          current.some(
+            (conversation) =>
+              conversation._id ===
+              newConversation._id
+          )
 
-      if (!alreadyExists) {
-        setConversations((current) => [
+        if (alreadyExists) {
+          return current
+        }
+
+        return [
           newConversation,
           ...current,
-        ])
-      }
+        ]
+      })
 
       setSelectedConversation(
         newConversation
@@ -313,10 +357,6 @@ function Messages() {
     }
   }
 
-  const handleSearchChange = (event) => {
-    setUserSearch(event.target.value)
-  }
-
   const getUserInitial = (user) => {
     if (!user?.name) {
       return '?'
@@ -331,12 +371,14 @@ function Messages() {
     <div className="messages-page">
 
       <section className="messages-header">
+
         <h1>Messages</h1>
 
         <p>
           Connect with students and communicate
           directly on campus.
         </p>
+
       </section>
 
       <section className="chat-container">
@@ -346,6 +388,7 @@ function Messages() {
           <div className="conversation-header">
 
             <div className="conversation-header-row">
+
               <h2>Chats</h2>
 
               <button
@@ -359,6 +402,7 @@ function Messages() {
               >
                 + New Chat
               </button>
+
             </div>
 
             {showNewChat && (
@@ -367,8 +411,10 @@ function Messages() {
                 <input
                   type="text"
                   value={userSearch}
-                  onChange={
-                    handleSearchChange
+                  onChange={(event) =>
+                    setUserSearch(
+                      event.target.value
+                    )
                   }
                   placeholder="Search students..."
                 />
@@ -397,6 +443,7 @@ function Messages() {
                         </div>
 
                         <div className="user-search-info">
+
                           <strong>
                             {user.name}
                           </strong>
@@ -404,10 +451,12 @@ function Messages() {
                           <span>
                             {user.department ||
                               'Campus student'}
+
                             {user.year
                               ? ` • Year ${user.year}`
                               : ''}
                           </span>
+
                         </div>
 
                       </button>
@@ -432,6 +481,7 @@ function Messages() {
           ) : conversations.length > 0 ? (
             conversations.map(
               (conversation) => {
+
                 const otherUser =
                   getOtherParticipant(
                     conversation
@@ -509,6 +559,7 @@ function Messages() {
                 </div>
 
                 <div>
+
                   <h2>
                     {selectedUser?.name ||
                       'Campus student'}
@@ -517,10 +568,12 @@ function Messages() {
                   <span>
                     {selectedUser?.department ||
                       'Campus student'}
+
                     {selectedUser?.year
                       ? ` • Year ${selectedUser.year}`
                       : ''}
                   </span>
+
                 </div>
 
               </div>
@@ -535,20 +588,23 @@ function Messages() {
 
                 {loadingMessages ? (
                   <div className="empty-chat">
+
                     <h2>
                       Loading messages...
                     </h2>
+
                   </div>
                 ) : messages.length > 0 ? (
                   messages.map((message) => {
 
                     const isOwnMessage =
+                      currentUser &&
                       String(
                         message.sender?._id
-                      ) !==
-                      String(
-                        selectedUser?._id
-                      )
+                      ) ===
+                        String(
+                          currentUser._id
+                        )
 
                     return (
                       <div
@@ -579,6 +635,11 @@ function Messages() {
                   })
                 ) : (
                   <div className="empty-chat">
+
+                    <div className="empty-chat-icon">
+                      💬
+                    </div>
+
                     <h2>
                       Start the conversation
                     </h2>
@@ -588,6 +649,7 @@ function Messages() {
                       {selectedUser?.name ||
                         'this student'}.
                     </p>
+
                   </div>
                 )}
 
