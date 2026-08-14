@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import {
   getAcademicResources,
@@ -564,17 +565,26 @@ function Academic() {
                       </span>
                     </div>
 
-                    <button
-                      type="button"
-                      className="view-resource-button"
-                      onClick={() =>
-                        openResource(
-                          resource.fileUrl
-                        )
-                      }
-                    >
-                      Open Resource
-                    </button>
+                    <div className="academic-card-actions">
+
+  <Link
+    to={`/academic/${resource._id}`}
+    className="view-details-button"
+  >
+    View Details
+  </Link>
+
+  <button
+    type="button"
+    className="view-resource-button"
+    onClick={() =>
+      openResource(resource.fileUrl)
+    }
+  >
+    Open Resource
+  </button>
+
+</div>
 
                   </div>
 
