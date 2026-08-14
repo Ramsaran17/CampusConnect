@@ -268,3 +268,39 @@
     flex-direction: column;
   }
 }
+.academic-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.view-details-button {
+  display: inline-block;
+  padding: 9px 16px;
+  border-radius: 7px;
+  background-color: #2563eb;
+  color: white;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.view-details-button:hover {
+  background-color: #1d4ed8;
+}
+
+.academic-card-actions .view-resource-button {
+  margin-top: 0;
+}
+
+@media (max-width: 600px) {
+  .academic-card-actions {
+    flex-direction: column;
+  }
+
+  .view-details-button,
+  .academic-card-actions .view-resource-button {
+    width: 100%;
+    text-align: center;
+  }
+}
