@@ -1,0 +1,254 @@
+.academic-details-page {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  padding: 50px 20px;
+}
+
+.academic-details-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.back-academic {
+  display: inline-block;
+  margin-bottom: 25px;
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.back-academic:hover {
+  text-decoration: underline;
+}
+
+.academic-details-card {
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.academic-details-content {
+  padding: 45px;
+}
+
+.academic-details-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.academic-details-title-row h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 34px;
+}
+
+.academic-details-type {
+  padding: 7px 14px;
+  border-radius: 20px;
+  background-color: #e2e8f0;
+  color: #475569;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.academic-details-description {
+  margin-top: 25px;
+  color: #64748b;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.academic-details-information {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.academic-information-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.academic-information-item > span {
+  font-size: 22px;
+}
+
+.academic-information-item small {
+  display: block;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.academic-information-item p {
+  margin: 0;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.academic-uploaded-by {
+  margin-top: 35px;
+  padding-top: 25px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.academic-uploaded-by h2 {
+  margin-top: 0;
+  color: #0f172a;
+  font-size: 22px;
+}
+
+.academic-uploaded-by p {
+  margin: 5px 0;
+  color: #64748b;
+}
+
+.academic-resource-action {
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.academic-open-resource-button {
+  padding: 12px 22px;
+  border: none;
+  border-radius: 8px;
+  background-color: #1e293b;
+  color: white;
+  font-family: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.academic-open-resource-button:hover {
+  background-color: #334155;
+}
+
+.academic-details-not-found {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.academic-details-not-found h1 {
+  color: #0f172a;
+}
+
+.academic-details-not-found p {
+  color: #64748b;
+}
+
+.academic-details-not-found a {
+  margin-top: 15px;
+  color: #2563eb;
+  text-decoration: none;
+}
+
+@media (max-width: 700px) {
+  .academic-details-page {
+    padding: 30px 15px;
+  }
+
+  .academic-details-content {
+    padding: 25px;
+  }
+
+  .academic-details-title-row {
+    flex-direction: column;
+  }
+
+  .academic-details-title-row h1 {
+    font-size: 28px;
+  }
+
+  .academic-details-information {
+    grid-template-columns: 1fr;
+  }
+}
+
+.academic-resource-action {
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.academic-resource-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.academic-open-resource-button,
+.academic-edit-button,
+.academic-delete-button {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 16px;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.academic-open-resource-button {
+  border: none;
+  background-color: #1e293b;
+  color: white;
+  cursor: pointer;
+}
+
+.academic-open-resource-button:hover {
+  background-color: #334155;
+}
+
+.academic-edit-button {
+  background-color: #2563eb;
+  color: white;
+  text-decoration: none;
+}
+
+.academic-edit-button:hover {
+  background-color: #1d4ed8;
+}
+
+.academic-delete-button {
+  border: none;
+  background-color: #dc2626;
+  color: white;
+  cursor: pointer;
+}
+
+.academic-delete-button:hover {
+  background-color: #b91c1c;
+}
+
+.academic-delete-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+  .academic-resource-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .academic-open-resource-button,
+  .academic-edit-button,
+  .academic-delete-button {
+    width: 100%;
+    text-align: center;
+  }
+}

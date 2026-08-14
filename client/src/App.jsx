@@ -13,6 +13,8 @@ import LostFound from './pages/LostFound'
 import LostFoundDetails from './pages/LostFoundDetails'
 import EditLostFound from './pages/EditLostFound'
 import Academic from './pages/Academic'
+import AcademicDetails from './pages/AcademicDetails'
+import EditAcademicResource from './pages/EditAcademicResource'
 import Events from './pages/Events'
 import Messages from './pages/Messages'
 import EditListing from './pages/EditListing'
@@ -59,6 +61,16 @@ function App() {
           <Route
             path="/academic"
             element={<Academic />}
+          />
+
+          <Route
+  path="/academic/:id"
+  element={<AcademicDetails />}
+/>
+
+          <Route
+            path="/academic/:id/edit"
+            element={<EditAcademicResource />}
           />
 
           <Route
