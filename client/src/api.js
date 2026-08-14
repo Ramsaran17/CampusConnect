@@ -187,3 +187,115 @@ export const deleteListing = async (id) => {
 
   return data
 }
+
+/* =========================
+   LOST & FOUND
+========================= */
+
+export const getLostFoundPosts = async () => {
+  const response = await fetch(
+    `${API_URL}/api/lost-found`
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || 'Failed to fetch Lost & Found posts'
+    )
+  }
+
+  return data
+}
+
+export const getLostFoundPost = async (id) => {
+  const response = await fetch(
+    `${API_URL}/api/lost-found/${id}`
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || 'Failed to fetch Lost & Found post'
+    )
+  }
+
+  return data
+}
+
+export const createLostFoundPost = async (postData) => {
+  const response = await fetch(
+    `${API_URL}/api/lost-found`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(postData),
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        'Failed to create Lost & Found post'
+    )
+  }
+
+  return data
+}
+
+export const updateLostFoundPost = async (
+  id,
+  postData
+) => {
+  const response = await fetch(
+    `${API_URL}/api/lost-found/${id}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(postData),
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        'Failed to update Lost & Found post'
+    )
+  }
+
+  return data
+}
+
+export const deleteLostFoundPost = async (id) => {
+  const response = await fetch(
+    `${API_URL}/api/lost-found/${id}`,
+    {
+      method: 'DELETE',
+      headers: {
+        ...getAuthHeaders(),
+      },
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        'Failed to delete Lost & Found post'
+    )
+  }
+
+  return data
+}
