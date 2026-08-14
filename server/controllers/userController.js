@@ -49,7 +49,11 @@ const updateProfile = async (req, res) => {
         if (year !== undefined) {
             const numericYear = Number(year);
 
-            if (!Number.isInteger(numericYear) || numericYear < 1 || numericYear > 4) {
+            if (
+                !Number.isInteger(numericYear) ||
+                numericYear < 1 ||
+                numericYear > 4
+            ) {
                 return res.status(400).json({
                     message: "Year must be between 1 and 4"
                 });
@@ -100,7 +104,58 @@ const updateProfile = async (req, res) => {
     }
 };
 
+const getUsers = async (req, res) => {
+    try {
+        const search = req.query.search?.trim() || "";
+
+        const query = {
+            _id: { $ne: req.user._id }
+        };
+
+        if (search) {
+            query.$or = [
+                {
+                    name: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                },
+                {
+                    email: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                },
+                {
+                    department: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                }
+            ];
+        }
+
+        const users = await User.find(query)
+            .select(
+                "_id name email profileImage department year"
+            )
+            .sort({ name: 1 })
+            .limit(30);
+
+        return res.status(200).json({
+            users
+        });
+    } catch (error) {
+        console.error("Get users error:", error.message);
+
+        return res.status(500).json({
+            message: "Server error while fetching users"
+        });
+    }
+};
+
 module.exports = {
     getProfile,
-    updateProfile
+    updateProfile,
+    getUsers
 };
