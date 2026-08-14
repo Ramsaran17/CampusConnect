@@ -155,10 +155,13 @@
 }
 
 .lost-found-card {
+  display: block;
   background-color: white;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   overflow: hidden;
+  text-decoration: none;
+  color: inherit;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 

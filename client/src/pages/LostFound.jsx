@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   getLostFoundPosts,
   createLostFoundPost,
@@ -444,7 +445,8 @@ function LostFound() {
 
             {filteredItems.map((item) => (
 
-              <div
+              <Link
+                to={`/lost-found/${item._id}`}
                 className="lost-found-card"
                 key={item._id}
               >
@@ -504,7 +506,7 @@ function LostFound() {
 
                 </div>
 
-              </div>
+              </Link>
 
             ))}
 

@@ -1,0 +1,230 @@
+.lost-found-details-page {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  padding: 50px 20px;
+}
+
+.lost-found-details-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.back-lost-found {
+  display: inline-block;
+  margin-bottom: 25px;
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.back-lost-found:hover {
+  text-decoration: underline;
+}
+
+.lost-found-details-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.lost-found-details-image {
+  min-height: 500px;
+  background-color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 18px;
+}
+
+.lost-found-details-image img {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  object-fit: cover;
+}
+
+.lost-found-details-content {
+  padding: 40px;
+}
+
+.lost-found-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.lost-found-title-row h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 34px;
+}
+
+.details-status {
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.details-status.lost {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.details-status.found {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.lost-found-details-description {
+  margin-top: 25px;
+  color: #64748b;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.lost-found-information {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.lost-found-information-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.lost-found-information-item > span {
+  font-size: 22px;
+}
+
+.lost-found-information-item small {
+  display: block;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.lost-found-information-item p {
+  margin: 0;
+  color: #0f172a;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.lost-found-reported-by {
+  margin-top: 35px;
+  padding-top: 25px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.lost-found-reported-by h2 {
+  margin-top: 0;
+  color: #0f172a;
+  font-size: 22px;
+}
+
+.lost-found-reported-by p {
+  margin: 5px 0;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.lost-found-details-not-found {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.lost-found-details-not-found h1 {
+  color: #0f172a;
+}
+
+.lost-found-details-not-found p {
+  color: #64748b;
+}
+
+.lost-found-details-not-found a {
+  margin-top: 15px;
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.lost-found-details-not-found a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .lost-found-details-card {
+    grid-template-columns: 1fr;
+  }
+
+  .lost-found-details-image {
+    min-height: 350px;
+  }
+
+  .lost-found-details-image img {
+    min-height: 350px;
+  }
+}
+
+@media (max-width: 600px) {
+  .lost-found-details-page {
+    padding: 30px 15px;
+  }
+
+  .lost-found-details-content {
+    padding: 25px;
+  }
+
+  .lost-found-title-row {
+    flex-direction: column;
+  }
+
+  .lost-found-title-row h1 {
+    font-size: 28px;
+  }
+
+  .lost-found-information {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lost-found-owner-actions {
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.lost-found-delete-button {
+  padding: 12px 22px;
+  border: none;
+  border-radius: 8px;
+  background-color: #dc2626;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.lost-found-delete-button:hover {
+  background-color: #b91c1c;
+}
+
+.lost-found-delete-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
