@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { createListing } from '../api'
 import './CreateListing.css'
 
 function CreateListing() {
@@ -13,8 +14,9 @@ function CreateListing() {
   const [condition, setCondition] = useState('')
   const [image, setImage] = useState(null)
   const [location, setLocation] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     if (!title.trim()) {
@@ -47,9 +49,16 @@ function CreateListing() {
       return
     }
 
-    const saveListing = (imageData = null) => {
-      const newListing = {
-        id: Date.now().toString(),
+    try {
+      setLoading(true)
+
+      let imageData = ''
+
+      if (image) {
+        imageData = await readImageFile(image)
+      }
+
+      await createListing({
         title: title.trim(),
         description: description.trim(),
         price: isFree ? 0 : Number(price),
@@ -58,40 +67,39 @@ function CreateListing() {
         condition,
         image: imageData,
         location: location.trim(),
-      }
-
-      const existingListings = JSON.parse(
-        localStorage.getItem('marketplaceListings') || '[]'
-      )
-
-      localStorage.setItem(
-        'marketplaceListings',
-        JSON.stringify([
-          newListing,
-          ...existingListings,
-        ])
-      )
+      })
 
       alert('Item posted successfully!')
 
       navigate('/marketplace')
+    } catch (error) {
+      alert(error.message)
+    } finally {
+      setLoading(false)
     }
+  }
 
-    if (image) {
+  const readImageFile = (file) => {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader()
 
       reader.onload = () => {
-        saveListing(reader.result)
+        resolve(reader.result)
       }
 
-      reader.readAsDataURL(image)
-    } else {
-      saveListing()
-    }
+      reader.onerror = () => {
+        reject(
+          new Error('Failed to read image')
+        )
+      }
+
+      reader.readAsDataURL(file)
+    })
   }
 
   return (
     <div className="create-listing-page">
+
       <div className="create-listing-container">
 
         <h1>Post an Item</h1>
@@ -99,17 +107,22 @@ function CreateListing() {
         <form onSubmit={handleSubmit}>
 
           <div className="form-group">
+
             <label>Item Title</label>
 
             <input
               type="text"
               value={title}
-              onChange={(event) => setTitle(event.target.value)}
+              onChange={(event) =>
+                setTitle(event.target.value)
+              }
               placeholder="Example: Study Table"
             />
+
           </div>
 
           <div className="form-group">
+
             <label>Description</label>
 
             <textarea
@@ -119,9 +132,11 @@ function CreateListing() {
               }
               placeholder="Describe the item..."
             />
+
           </div>
 
           <div className="form-group">
+
             <label>Category</label>
 
             <select
@@ -130,16 +145,37 @@ function CreateListing() {
                 setCategory(event.target.value)
               }
             >
-              <option value="">Select a category</option>
-              <option value="Furniture">Furniture</option>
-              <option value="Electronics">Electronics</option>
-              <option value="Books">Books</option>
-              <option value="Cycles">Cycles</option>
-              <option value="Other">Other</option>
+
+              <option value="">
+                Select a category
+              </option>
+
+              <option value="furniture">
+                Furniture
+              </option>
+
+              <option value="electronics">
+                Electronics
+              </option>
+
+              <option value="books">
+                Books
+              </option>
+
+              <option value="cycles">
+                Cycles
+              </option>
+
+              <option value="other">
+                Other
+              </option>
+
             </select>
+
           </div>
 
           <div className="form-group">
+
             <label>Condition</label>
 
             <select
@@ -148,14 +184,29 @@ function CreateListing() {
                 setCondition(event.target.value)
               }
             >
-              <option value="">Select condition</option>
-              <option value="New">New</option>
-              <option value="Good">Good</option>
-              <option value="Used">Used</option>
+
+              <option value="">
+                Select condition
+              </option>
+
+              <option value="new">
+                New
+              </option>
+
+              <option value="good">
+                Good
+              </option>
+
+              <option value="used">
+                Used
+              </option>
+
             </select>
+
           </div>
 
           <div className="form-group">
+
             <label>Item Image</label>
 
             <input
@@ -165,9 +216,11 @@ function CreateListing() {
                 setImage(event.target.files[0])
               }
             />
+
           </div>
 
           <div className="form-group">
+
             <label>Pickup Location</label>
 
             <input
@@ -178,9 +231,11 @@ function CreateListing() {
               }
               placeholder="Example: Hostel 3, Main Gate"
             />
+
           </div>
 
           <div className="free-option">
+
             <input
               type="checkbox"
               checked={isFree}
@@ -189,11 +244,15 @@ function CreateListing() {
               }
             />
 
-            <label>Give away for free</label>
+            <label>
+              Give away for free
+            </label>
+
           </div>
 
           {!isFree && (
             <div className="form-group">
+
               <label>Price</label>
 
               <input
@@ -205,18 +264,24 @@ function CreateListing() {
                 }
                 placeholder="Enter price"
               />
+
             </div>
           )}
 
           <button
             className="submit-button"
             type="submit"
+            disabled={loading}
           >
-            Post Item
+            {loading
+              ? 'Posting...'
+              : 'Post Item'}
           </button>
 
         </form>
+
       </div>
+
     </div>
   )
 }
