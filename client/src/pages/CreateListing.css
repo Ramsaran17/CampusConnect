@@ -2,24 +2,31 @@
   min-height: 100vh;
   padding: 50px 20px;
   background-color: #f8fafc;
+  box-sizing: border-box;
 }
 
 .create-listing-container {
+  width: 100%;
   max-width: 650px;
   margin: 0 auto;
-  background-color: white;
+  background-color: #ffffff;
   padding: 40px;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
+  box-sizing: border-box;
 }
 
 .create-listing-container h1 {
-  margin-bottom: 30px;
+  margin: 0 0 30px;
   color: #0f172a;
+  font-size: 40px;
+  line-height: 1.2;
 }
 
 .form-group {
+  width: 100%;
   margin-bottom: 20px;
+  box-sizing: border-box;
 }
 
 .form-group label {
@@ -27,57 +34,131 @@
   margin-bottom: 8px;
   font-weight: 600;
   color: #334155;
+  text-align: left;
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
+  display: block;
   width: 100%;
-  padding: 12px;
+  box-sizing: border-box;
+
   border: 1px solid #cbd5e1;
   border-radius: 8px;
+
+  background-color: #ffffff;
+  color: #0f172a;
+  -webkit-text-fill-color: #0f172a;
+
+  font-family: inherit;
   font-size: 15px;
-  box-sizing: border-box;
-  background-color: white;
+  line-height: 1.5;
+
+  outline: none;
+}
+
+.form-group input,
+.form-group select {
+  height: 48px;
+  padding: 0 12px;
 }
 
 .form-group textarea {
   min-height: 120px;
+  padding: 12px;
   resize: vertical;
 }
 
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  border-color: #64748b;
+  box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.15);
+}
+
+/* Make selected dropdown values clearly visible */
+.form-group select {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  color-scheme: light;
+}
+
+.form-group select option {
+  color: #0f172a;
+  background-color: #ffffff;
+}
+
+/* Free listing option */
 .free-option {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 20px;
+  color: #334155;
 }
 
 .free-option input {
-  width: auto;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  flex: 0 0 auto;
 }
 
 .free-option label {
   color: #334155;
+  cursor: pointer;
 }
 
+/* Submit button */
 .submit-button {
+  display: block;
   width: 100%;
+  min-height: 48px;
   padding: 13px;
+  margin-top: 5px;
+
   border: none;
   border-radius: 8px;
+
   background-color: #1e293b;
-  color: white;
+  color: #ffffff;
+
+  font-family: inherit;
   font-size: 16px;
+  font-weight: 500;
+
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .submit-button:hover {
   background-color: #334155;
 }
 
+.submit-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Mobile */
 @media (max-width: 600px) {
+  .create-listing-page {
+    padding: 30px 15px;
+  }
+
   .create-listing-container {
     padding: 25px 20px;
+  }
+
+  .create-listing-container h1 {
+    font-size: 32px;
   }
 }
