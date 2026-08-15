@@ -2,7 +2,6 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-
 const connectDB = require("./config/db");
 
 const authRoutes = require("./routes/authRoutes");
@@ -17,33 +16,27 @@ const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
 
-const allowedOrigins = [
-    "https://dummy-project-1-dsfr.onrender.com",
-    "http://localhost:5173"
-];
+/* =========================
+   CORS
+========================= */
 
 app.use(
     cors({
-        origin: function (origin, callback) {
-            // Allow requests without an origin
-            // (for example, Postman or server-to-server requests)
-            if (!origin) {
-                return callback(null, true);
-            }
-
-            if (allowedOrigins.includes(origin)) {
-                return callback(null, true);
-            }
-
-            return callback(new Error("Not allowed by CORS"));
-        },
-        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        origin: [
+            "http://localhost:5173",
+            "https://dummy-project-1-dfsr.onrender.com"
+        ],
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allowedHeaders: ["Content-Type", "Authorization"],
         credentials: true
     })
 );
 
 app.use(express.json());
+
+/* =========================
+   ROUTES
+========================= */
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -55,11 +48,19 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/saves", saveRoutes);
 app.use("/api/uploads", uploadRoutes);
 
-const PORT = process.env.PORT || 5000;
+/* =========================
+   ROOT
+========================= */
 
 app.get("/", (req, res) => {
     res.send("CampusConnect Backend is running!");
 });
+
+/* =========================
+   SERVER
+========================= */
+
+const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
     try {
@@ -70,7 +71,6 @@ const startServer = async () => {
         });
     } catch (error) {
         console.error("Failed to start server:", error);
-        process.exit(1);
     }
 };
 
