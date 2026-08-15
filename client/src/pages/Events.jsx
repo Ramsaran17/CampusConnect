@@ -3,34 +3,61 @@ import { useEffect, useState } from 'react'
 import {
   getEvents,
   createEvent,
+  uploadToCloudinary,
 } from '../api'
 import './Events.css'
 
 function Events() {
   const [events, setEvents] = useState([])
   const [search, setSearch] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState('All')
-  const [showForm, setShowForm] = useState(false)
+  const [categoryFilter, setCategoryFilter] =
+    useState('All')
+  const [showForm, setShowForm] =
+    useState(false)
 
   const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [organizer, setOrganizer] = useState('')
+  const [description, setDescription] =
+    useState('')
+  const [organizer, setOrganizer] =
+    useState('')
   const [date, setDate] = useState('')
-  const [startTime, setStartTime] = useState('')
-  const [endTime, setEndTime] = useState('')
-  const [location, setLocation] = useState('')
-  const [category, setCategory] = useState('')
-  const [image, setImage] = useState('')
+  const [startTime, setStartTime] =
+    useState('')
+  const [endTime, setEndTime] =
+    useState('')
+  const [location, setLocation] =
+    useState('')
+  const [category, setCategory] =
+    useState('')
+
+  const [imageFile, setImageFile] =
+    useState(null)
+  const [imagePreview, setImagePreview] =
+    useState('')
+
   const [registrationLink, setRegistrationLink] =
     useState('')
 
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
+  const [loading, setLoading] =
+    useState(true)
+  const [submitting, setSubmitting] =
+    useState(false)
+  const [uploadingImage, setUploadingImage] =
+    useState(false)
+  const [error, setError] =
+    useState('')
 
   useEffect(() => {
     loadEvents()
   }, [])
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(imagePreview)
+      }
+    }
+  }, [imagePreview])
 
   const loadEvents = async () => {
     try {
@@ -47,11 +74,83 @@ function Events() {
       )
 
       setError(
-        error.message || 'Failed to load events'
+        error.message ||
+          'Failed to load events'
       )
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleImageChange = (event) => {
+    const file =
+      event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+    ]
+
+    if (!allowedTypes.includes(file.type)) {
+      alert(
+        'Please select a JPG, PNG, or WEBP image'
+      )
+      event.target.value = ''
+      return
+    }
+
+    const maxSize =
+      10 * 1024 * 1024
+
+    if (file.size > maxSize) {
+      alert(
+        'Image size must be 10 MB or less'
+      )
+      event.target.value = ''
+      return
+    }
+
+    if (imagePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(imagePreview)
+    }
+
+    setImageFile(file)
+
+    setImagePreview(
+      URL.createObjectURL(file)
+    )
+  }
+
+  const handleRemoveImage = () => {
+    if (imagePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(imagePreview)
+    }
+
+    setImageFile(null)
+    setImagePreview('')
+  }
+
+  const resetForm = () => {
+    if (imagePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(imagePreview)
+    }
+
+    setTitle('')
+    setDescription('')
+    setOrganizer('')
+    setDate('')
+    setStartTime('')
+    setEndTime('')
+    setLocation('')
+    setCategory('')
+    setImageFile(null)
+    setImagePreview('')
+    setRegistrationLink('')
   }
 
   const handleSubmit = async (event) => {
@@ -63,12 +162,16 @@ function Events() {
     }
 
     if (!description.trim()) {
-      alert('Please enter an event description')
+      alert(
+        'Please enter an event description'
+      )
       return
     }
 
     if (!organizer.trim()) {
-      alert('Please enter the organizer name')
+      alert(
+        'Please enter the organizer name'
+      )
       return
     }
 
@@ -83,44 +186,66 @@ function Events() {
     }
 
     if (!location.trim()) {
-      alert('Please enter the event location')
+      alert(
+        'Please enter the event location'
+      )
       return
     }
 
-    if (!category.trim()) {
-      alert('Please enter the event category')
+    if (!category) {
+      alert(
+        'Please select the event category'
+      )
       return
     }
 
     try {
       setSubmitting(true)
 
+      let image = ''
+      let imagePublicId = ''
+
+      if (imageFile) {
+        setUploadingImage(true)
+
+        const uploadResult =
+          await uploadToCloudinary(
+            imageFile
+          )
+
+        image =
+          uploadResult.secureUrl
+
+        imagePublicId =
+          uploadResult.publicId
+
+        setUploadingImage(false)
+      }
+
       await createEvent({
         title: title.trim(),
-        description: description.trim(),
-        organizer: organizer.trim(),
+        description:
+          description.trim(),
+        organizer:
+          organizer.trim(),
         date,
         startTime,
         endTime,
-        location: location.trim(),
-        category: category.trim(),
-        image: image.trim(),
+        location:
+          location.trim(),
+        category:
+          category.trim(),
+        image,
+        imagePublicId,
         registrationLink:
           registrationLink.trim(),
       })
 
-      alert('Event added successfully!')
+      alert(
+        'Event added successfully!'
+      )
 
-      setTitle('')
-      setDescription('')
-      setOrganizer('')
-      setDate('')
-      setStartTime('')
-      setEndTime('')
-      setLocation('')
-      setCategory('')
-      setImage('')
-      setRegistrationLink('')
+      resetForm()
       setShowForm(false)
 
       await loadEvents()
@@ -131,15 +256,17 @@ function Events() {
       )
 
       alert(
-        error.message || 'Failed to create event'
+        error.message ||
+          'Failed to create event'
       )
     } finally {
+      setUploadingImage(false)
       setSubmitting(false)
     }
   }
 
-  const filteredEvents = events.filter(
-    (event) => {
+  const filteredEvents =
+    events.filter((event) => {
       const searchText =
         search.toLowerCase()
 
@@ -165,8 +292,7 @@ function Events() {
         matchesSearch &&
         matchesCategory
       )
-    }
-  )
+    })
 
   return (
     <div className="events-page">
@@ -176,15 +302,17 @@ function Events() {
         <h1>Campus Events</h1>
 
         <p>
-          Discover and share events happening around
-          campus.
+          Discover and share events happening
+          around campus.
         </p>
 
         <button
           type="button"
           className="add-event-button"
           onClick={() =>
-            setShowForm((current) => !current)
+            setShowForm(
+              (current) => !current
+            )
           }
         >
           {showForm
@@ -204,22 +332,21 @@ function Events() {
             <form onSubmit={handleSubmit}>
 
               <div className="form-group">
-
                 <label>Event Title</label>
 
                 <input
                   type="text"
                   value={title}
                   onChange={(event) =>
-                    setTitle(event.target.value)
+                    setTitle(
+                      event.target.value
+                    )
                   }
                   placeholder="Example: Coding Contest"
                 />
-
               </div>
 
               <div className="form-group">
-
                 <label>Description</label>
 
                 <textarea
@@ -231,11 +358,9 @@ function Events() {
                   }
                   placeholder="Describe the event..."
                 />
-
               </div>
 
               <div className="form-group">
-
                 <label>Organizer</label>
 
                 <input
@@ -248,20 +373,19 @@ function Events() {
                   }
                   placeholder="Example: Coding Club"
                 />
-
               </div>
 
               <div className="form-group">
-
                 <label>Category</label>
 
                 <select
                   value={category}
                   onChange={(event) =>
-                    setCategory(event.target.value)
+                    setCategory(
+                      event.target.value
+                    )
                   }
                 >
-
                   <option value="">
                     Select category
                   </option>
@@ -289,29 +413,26 @@ function Events() {
                   <option value="Other">
                     Other
                   </option>
-
                 </select>
-
               </div>
 
               <div className="event-date-time">
 
                 <div className="form-group">
-
                   <label>Date</label>
 
                   <input
                     type="date"
                     value={date}
                     onChange={(event) =>
-                      setDate(event.target.value)
+                      setDate(
+                        event.target.value
+                      )
                     }
                   />
-
                 </div>
 
                 <div className="form-group">
-
                   <label>Start Time</label>
 
                   <input
@@ -323,13 +444,11 @@ function Events() {
                       )
                     }
                   />
-
                 </div>
 
               </div>
 
               <div className="form-group">
-
                 <label>End Time</label>
 
                 <input
@@ -341,11 +460,9 @@ function Events() {
                     )
                   }
                 />
-
               </div>
 
               <div className="form-group">
-
                 <label>Location</label>
 
                 <input
@@ -358,26 +475,81 @@ function Events() {
                   }
                   placeholder="Example: Main Auditorium"
                 />
-
               </div>
 
               <div className="form-group">
+                <label>Event Image</label>
 
-                <label>Event Image URL</label>
+                <div className="image-upload-box">
 
-                <input
-                  type="url"
-                  value={image}
-                  onChange={(event) =>
-                    setImage(event.target.value)
-                  }
-                  placeholder="https://example.com/image.jpg"
-                />
+                  {!imagePreview ? (
+                    <>
+                      <div className="image-upload-icon">
+                        📷
+                      </div>
 
+                      <p>
+                        Upload an image for your event
+                      </p>
+
+                      <span>
+                        JPG, PNG or WEBP • Max 10 MB
+                      </span>
+
+                      <label className="image-select-button">
+                        Choose Image
+
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={
+                            handleImageChange
+                          }
+                        />
+                      </label>
+                    </>
+                  ) : (
+                    <div className="image-preview-wrapper">
+
+                      <img
+                        src={imagePreview}
+                        alt="Event"
+                        className="image-preview"
+                      />
+
+                      <div className="image-preview-actions">
+
+                        <label className="image-change-button">
+                          Change Image
+
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={
+                              handleImageChange
+                            }
+                          />
+                        </label>
+
+                        <button
+                          type="button"
+                          className="image-remove-button"
+                          onClick={
+                            handleRemoveImage
+                          }
+                        >
+                          Remove
+                        </button>
+
+                      </div>
+
+                    </div>
+                  )}
+
+                </div>
               </div>
 
               <div className="form-group">
-
                 <label>
                   Registration Link
                 </label>
@@ -392,17 +564,21 @@ function Events() {
                   }
                   placeholder="https://example.com/register"
                 />
-
               </div>
 
               <button
                 className="submit-event-button"
                 type="submit"
-                disabled={submitting}
+                disabled={
+                  submitting ||
+                  uploadingImage
+                }
               >
-                {submitting
-                  ? 'Adding...'
-                  : 'Add Event'}
+                {uploadingImage
+                  ? 'Uploading image...'
+                  : submitting
+                    ? 'Adding...'
+                    : 'Add Event'}
               </button>
 
             </form>
@@ -421,7 +597,9 @@ function Events() {
             placeholder="Search events..."
             value={search}
             onChange={(event) =>
-              setSearch(event.target.value)
+              setSearch(
+                event.target.value
+              )
             }
           />
 
@@ -433,7 +611,6 @@ function Events() {
               )
             }
           >
-
             <option value="All">
               All Categories
             </option>
@@ -461,7 +638,6 @@ function Events() {
             <option value="Other">
               Other
             </option>
-
           </select>
 
         </div>
@@ -470,17 +646,12 @@ function Events() {
 
         {loading ? (
           <div className="no-events">
-
             <h3>Loading events...</h3>
-
           </div>
         ) : error ? (
           <div className="no-events">
-
             <h3>Unable to load events</h3>
-
             <p>{error}</p>
-
           </div>
         ) : filteredEvents.length > 0 ? (
           <div className="events-grid">
@@ -566,13 +737,11 @@ function Events() {
           </div>
         ) : (
           <div className="no-events">
-
             <h3>No events found</h3>
 
             <p>
               Try changing your search or category.
             </p>
-
           </div>
         )}
 
