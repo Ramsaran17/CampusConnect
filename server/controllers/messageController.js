@@ -14,7 +14,8 @@ const createConversation = async (req, res) => {
 
         if (userId === req.user._id.toString()) {
             return res.status(400).json({
-                message: "You cannot start a conversation with yourself"
+                message:
+                    "You cannot start a conversation with yourself"
             });
         }
 
@@ -62,10 +63,14 @@ const createConversation = async (req, res) => {
             conversation
         });
     } catch (error) {
-        console.error("Create conversation error:", error.message);
+        console.error(
+            "Create conversation error:",
+            error.message
+        );
 
         return res.status(500).json({
-            message: "Server error while creating conversation"
+            message:
+                "Server error while creating conversation"
         });
     }
 };
@@ -85,10 +90,14 @@ const getConversations = async (req, res) => {
             conversations
         });
     } catch (error) {
-        console.error("Get conversations error:", error.message);
+        console.error(
+            "Get conversations error:",
+            error.message
+        );
 
         return res.status(500).json({
-            message: "Server error while fetching conversations"
+            message:
+                "Server error while fetching conversations"
         });
     }
 };
@@ -102,7 +111,8 @@ const getMessages = async (req, res) => {
 
         if (!conversation) {
             return res.status(403).json({
-                message: "You are not a participant in this conversation"
+                message:
+                    "You are not a participant in this conversation"
             });
         }
 
@@ -119,67 +129,149 @@ const getMessages = async (req, res) => {
             messages
         });
     } catch (error) {
-        console.error("Get messages error:", error.message);
+        console.error(
+            "Get messages error:",
+            error.message
+        );
 
         return res.status(500).json({
-            message: "Server error while fetching messages"
+            message:
+                "Server error while fetching messages"
         });
     }
 };
 
 const sendMessage = async (req, res) => {
     try {
-        const { text } = req.body;
+        const { text, attachment } = req.body;
 
-        if (!text || !text.trim()) {
+        const messageText =
+            typeof text === "string"
+                ? text.trim()
+                : "";
+
+        let messageAttachment = null;
+
+        if (attachment !== undefined) {
+            if (
+                !attachment ||
+                typeof attachment !== "object"
+            ) {
+                return res.status(400).json({
+                    message:
+                        "Invalid attachment data"
+                });
+            }
+
+            const {
+                url,
+                publicId,
+                type,
+                name
+            } = attachment;
+
+            if (!url || typeof url !== "string") {
+                return res.status(400).json({
+                    message:
+                        "Attachment URL is required"
+                });
+            }
+
+            if (
+                type !== "image" &&
+                type !== "file"
+            ) {
+                return res.status(400).json({
+                    message:
+                        "Attachment type must be image or file"
+                });
+            }
+
+            messageAttachment = {
+                url: url.trim(),
+                publicId:
+                    typeof publicId === "string"
+                        ? publicId.trim()
+                        : "",
+                type,
+                name:
+                    typeof name === "string"
+                        ? name.trim()
+                        : ""
+            };
+        }
+
+        if (
+            !messageText &&
+            !messageAttachment
+        ) {
             return res.status(400).json({
-                message: "Message text is required"
+                message:
+                    "Message text or attachment is required"
             });
         }
 
-        const conversation = await Conversation.findOne({
-            _id: req.params.conversationId,
-            participants: req.user._id
-        });
+        const conversation =
+            await Conversation.findOne({
+                _id: req.params.conversationId,
+                participants: req.user._id
+            });
 
         if (!conversation) {
             return res.status(403).json({
-                message: "You are not a participant in this conversation"
+                message:
+                    "You are not a participant in this conversation"
             });
         }
 
-        const message = await Message.create({
+        const messageData = {
             conversation: conversation._id,
             sender: req.user._id,
-            text: text.trim()
-        });
+            text: messageText
+        };
+
+        if (messageAttachment) {
+            messageData.attachment =
+                messageAttachment;
+        }
+
+        const message =
+            await Message.create(messageData);
 
         conversation.updatedAt = new Date();
+
         await conversation.save();
 
-        const populatedMessage = await message.populate(
-            "sender",
-            "name email profileImage department year"
-        );
+        const populatedMessage =
+            await message.populate(
+                "sender",
+                "name email profileImage department year"
+            );
 
         return res.status(201).json({
-            message: "Message sent successfully",
+            message:
+                "Message sent successfully",
             data: populatedMessage
         });
     } catch (error) {
-        console.error("Send message error:", error.message);
+        console.error(
+            "Send message error:",
+            error.message
+        );
 
         return res.status(500).json({
-            message: "Server error while sending message"
+            message:
+                "Server error while sending message"
         });
     }
 };
 
 const markMessageAsRead = async (req, res) => {
     try {
-        const message = await Message.findById(
-            req.params.messageId
-        );
+        const message =
+            await Message.findById(
+                req.params.messageId
+            );
 
         if (!message) {
             return res.status(404).json({
@@ -187,29 +279,37 @@ const markMessageAsRead = async (req, res) => {
             });
         }
 
-        const conversation = await Conversation.findOne({
-            _id: message.conversation,
-            participants: req.user._id
-        });
+        const conversation =
+            await Conversation.findOne({
+                _id: message.conversation,
+                participants: req.user._id
+            });
 
         if (!conversation) {
             return res.status(403).json({
-                message: "You are not a participant in this conversation"
+                message:
+                    "You are not a participant in this conversation"
             });
         }
 
         message.read = true;
+
         await message.save();
 
         return res.status(200).json({
-            message: "Message marked as read",
+            message:
+                "Message marked as read",
             data: message
         });
     } catch (error) {
-        console.error("Mark message as read error:", error.message);
+        console.error(
+            "Mark message as read error:",
+            error.message
+        );
 
         return res.status(500).json({
-            message: "Server error while updating message"
+            message:
+                "Server error while updating message"
         });
     }
 };

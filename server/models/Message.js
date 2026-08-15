@@ -15,11 +15,37 @@ const messageSchema = new mongoose.Schema(
         },
 
         text: {
-            type: String,
-            required: true,
-            trim: true,
-            maxlength: 2000
-        },
+    type: String,
+    trim: true,
+    maxlength: 2000,
+    default: ""
+},
+
+attachment: {
+    url: {
+        type: String,
+        default: ""
+    },
+
+    publicId: {
+        type: String,
+        default: ""
+    },
+
+    type: {
+        type: String,
+        enum: [
+            "image",
+            "file"
+        ],
+        default: ""
+    },
+
+    name: {
+        type: String,
+        default: ""
+    }
+},
 
         read: {
             type: Boolean,
