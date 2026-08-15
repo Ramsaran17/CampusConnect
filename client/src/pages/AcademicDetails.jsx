@@ -4,6 +4,9 @@ import {
   getAcademicResource,
   getMe,
   deleteAcademicResource,
+  saveItem,
+  checkSaved,
+  removeSavedItem,
 } from '../api'
 import './AcademicDetails.css'
 
@@ -27,7 +30,9 @@ function AcademicDetails() {
   const [currentUser, setCurrentUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
-  const [error, setError] = useState('')
+const [saved, setSaved] = useState(false)
+const [saving, setSaving] = useState(false)
+const [error, setError] = useState('')
 
   useEffect(() => {
     loadResource()
@@ -39,13 +44,19 @@ function AcademicDetails() {
       setError('')
 
       const [resourceData, userData] =
-        await Promise.all([
-          getAcademicResource(id),
-          getMe(),
-        ])
+  await Promise.all([
+    getAcademicResource(id),
+    getMe(),
+  ])
 
       setResource(resourceData.resource)
       setCurrentUser(userData.user)
+      const savedData = await checkSaved(
+  'academic',
+  id
+)
+
+setSaved(savedData.saved)
     } catch (error) {
       console.error(
         'Failed to load academic resource:',
@@ -79,6 +90,40 @@ function AcademicDetails() {
       'noopener,noreferrer'
     )
   }
+
+  const handleSave = async () => {
+  try {
+    setSaving(true)
+
+    if (saved) {
+      await removeSavedItem(
+        'academic',
+        id
+      )
+
+      setSaved(false)
+    } else {
+      await saveItem(
+        'academic',
+        id
+      )
+
+      setSaved(true)
+    }
+  } catch (error) {
+    console.error(
+      'Failed to update saved status:',
+      error
+    )
+
+    alert(
+      error.message ||
+        'Failed to update saved status'
+    )
+  } finally {
+    setSaving(false)
+  }
+}
 
   const handleDelete = async () => {
     const confirmed = window.confirm(
@@ -239,13 +284,28 @@ function AcademicDetails() {
 
   <div className="academic-resource-actions">
 
-    <button
-      type="button"
-      className="academic-open-resource-button"
-      onClick={openResource}
-    >
-      Open Resource
-    </button>
+  <button
+    type="button"
+    className="academic-open-resource-button"
+    onClick={openResource}
+  >
+    Open Resource
+  </button>
+
+  <button
+    type="button"
+    className={`academic-save-button ${
+      saved ? 'saved' : ''
+    }`}
+    onClick={handleSave}
+    disabled={saving}
+  >
+    {saving
+      ? 'Saving...'
+      : saved
+      ? '✓ Saved'
+      : '🔖 Save'}
+  </button>
 
     {isOwner && (
       <>

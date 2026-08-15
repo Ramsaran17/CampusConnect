@@ -252,3 +252,37 @@
     text-align: center;
   }
 }
+
+/* =========================
+   SAVE ACADEMIC RESOURCE
+========================= */
+
+.academic-save-button {
+  padding: 12px 20px;
+  border: 1px solid #2563eb;
+  border-radius: 8px;
+  background-color: white;
+  color: #2563eb;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.academic-save-button:hover {
+  background-color: #eff6ff;
+}
+
+.academic-save-button.saved {
+  background-color: #2563eb;
+  color: white;
+}
+
+.academic-save-button.saved:hover {
+  background-color: #1d4ed8;
+}
+
+.academic-save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
