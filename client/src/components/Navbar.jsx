@@ -48,6 +48,10 @@ function Navbar() {
 
         {currentUser ? (
           <>
+            <Link to="/saved">
+              Saved
+            </Link>
+
             <Link to="/profile">
               Profile
             </Link>
