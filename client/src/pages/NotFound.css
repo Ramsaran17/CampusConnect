@@ -1,0 +1,71 @@
+.not-found-page {
+  min-height: calc(100vh - 70px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background-color: #f8fafc;
+}
+
+.not-found-card {
+  width: 100%;
+  max-width: 600px;
+  padding: 60px 40px;
+  text-align: center;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.not-found-code {
+  margin-bottom: 10px;
+  color: #2563eb;
+  font-size: 72px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.not-found-card h1 {
+  margin: 0 0 12px;
+  color: #0f172a;
+  font-size: 32px;
+}
+
+.not-found-card p {
+  max-width: 450px;
+  margin: 0 auto 28px;
+  color: #64748b;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.not-found-home-button {
+  display: inline-block;
+  padding: 12px 22px;
+  border-radius: 8px;
+  background-color: #1e293b;
+  color: white;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.not-found-home-button:hover {
+  background-color: #334155;
+}
+
+@media (max-width: 600px) {
+  .not-found-card {
+    padding: 45px 25px;
+  }
+
+  .not-found-code {
+    font-size: 58px;
+  }
+
+  .not-found-card h1 {
+    font-size: 26px;
+  }
+}
