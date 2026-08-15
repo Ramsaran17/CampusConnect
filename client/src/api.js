@@ -1,4 +1,4 @@
-const API_URL = 'http://10.100.36.141:5000'
+const API_URL = 'https://dummy-project-uf09.onrender.com'
 
 const getToken = () => {
   return localStorage.getItem('token')
