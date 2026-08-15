@@ -62,6 +62,18 @@ const academicResourceSchema = new mongoose.Schema(
             type: String,
             required: true,
             trim: true
+        },
+
+        filePublicId: {
+            type: String,
+            default: "",
+            trim: true
+        },
+
+        fileResourceType: {
+            type: String,
+            default: "",
+            trim: true
         }
     },
     {
