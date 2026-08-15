@@ -1,4 +1,28 @@
 const User = require("../models/User");
+const cloudinary = require("../config/cloudinary");
+
+const deleteCloudinaryProfileImage = async (
+    publicId
+) => {
+    if (!publicId) {
+        return;
+    }
+
+    try {
+        await cloudinary.uploader.destroy(
+            publicId,
+            {
+                resource_type: "image",
+                invalidate: true
+            }
+        );
+    } catch (error) {
+        console.error(
+            "Cloudinary profile image cleanup error:",
+            error.message
+        );
+    }
+};
 
 const getProfile = async (req, res) => {
     try {
@@ -6,10 +30,14 @@ const getProfile = async (req, res) => {
             user: req.user
         });
     } catch (error) {
-        console.error("Get profile error:", error.message);
+        console.error(
+            "Get profile error:",
+            error.message
+        );
 
         return res.status(500).json({
-            message: "Server error while fetching profile"
+            message:
+                "Server error while fetching profile"
         });
     }
 };
@@ -21,7 +49,8 @@ const updateProfile = async (req, res) => {
             department,
             year,
             phone,
-            profileImage
+            profileImage,
+            profileImagePublicId
         } = req.body;
 
         const updates = {};
@@ -29,7 +58,8 @@ const updateProfile = async (req, res) => {
         if (name !== undefined) {
             if (!name.trim()) {
                 return res.status(400).json({
-                    message: "Name cannot be empty"
+                    message:
+                        "Name cannot be empty"
                 });
             }
 
@@ -39,11 +69,13 @@ const updateProfile = async (req, res) => {
         if (department !== undefined) {
             if (!department.trim()) {
                 return res.status(400).json({
-                    message: "Department cannot be empty"
+                    message:
+                        "Department cannot be empty"
                 });
             }
 
-            updates.department = department.trim();
+            updates.department =
+                department.trim();
         }
 
         if (year !== undefined) {
@@ -55,7 +87,8 @@ const updateProfile = async (req, res) => {
                 numericYear > 4
             ) {
                 return res.status(400).json({
-                    message: "Year must be between 1 and 4"
+                    message:
+                        "Year must be between 1 and 4"
                 });
             }
 
@@ -66,24 +99,47 @@ const updateProfile = async (req, res) => {
             updates.phone = phone.trim();
         }
 
+        const oldProfileImagePublicId =
+            req.user.profileImagePublicId || "";
+
+        let replacingProfileImage = false;
+
         if (profileImage !== undefined) {
-            updates.profileImage = profileImage.trim();
+            updates.profileImage =
+                profileImage.trim();
+        }
+
+        if (
+            profileImagePublicId !==
+            undefined
+        ) {
+            updates.profileImagePublicId =
+                profileImagePublicId.trim();
+
+            replacingProfileImage =
+                Boolean(
+                    oldProfileImagePublicId &&
+                    oldProfileImagePublicId !==
+                        profileImagePublicId.trim()
+                );
         }
 
         if (Object.keys(updates).length === 0) {
             return res.status(400).json({
-                message: "No profile fields were provided"
+                message:
+                    "No profile fields were provided"
             });
         }
 
-        const updatedUser = await User.findByIdAndUpdate(
-            req.user._id,
-            updates,
-            {
-                new: true,
-                runValidators: true
-            }
-        ).select("-password");
+        const updatedUser =
+            await User.findByIdAndUpdate(
+                req.user._id,
+                updates,
+                {
+                    new: true,
+                    runValidators: true
+                }
+            ).select("-password");
 
         if (!updatedUser) {
             return res.status(404).json({
@@ -91,22 +147,34 @@ const updateProfile = async (req, res) => {
             });
         }
 
+        if (replacingProfileImage) {
+            await deleteCloudinaryProfileImage(
+                oldProfileImagePublicId
+            );
+        }
+
         return res.status(200).json({
-            message: "Profile updated successfully",
+            message:
+                "Profile updated successfully",
             user: updatedUser
         });
     } catch (error) {
-        console.error("Update profile error:", error.message);
+        console.error(
+            "Update profile error:",
+            error.message
+        );
 
         return res.status(500).json({
-            message: "Server error while updating profile"
+            message:
+                "Server error while updating profile"
         });
     }
 };
 
 const getUsers = async (req, res) => {
     try {
-        const search = req.query.search?.trim() || "";
+        const search =
+            req.query.search?.trim() || "";
 
         const query = {
             _id: { $ne: req.user._id }
@@ -146,10 +214,14 @@ const getUsers = async (req, res) => {
             users
         });
     } catch (error) {
-        console.error("Get users error:", error.message);
+        console.error(
+            "Get users error:",
+            error.message
+        );
 
         return res.status(500).json({
-            message: "Server error while fetching users"
+            message:
+                "Server error while fetching users"
         });
     }
 };
