@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getMe, updateProfile } from '../api'
+import Cropper from 'react-easy-crop'
+import {
+  getMe,
+  updateProfile,
+  uploadToCloudinary,
+} from '../api'
 import './Profile.css'
 
 function Profile() {
@@ -13,19 +18,120 @@ function Profile() {
   const [year, setYear] = useState('')
   const [hostel, setHostel] = useState('')
   const [bio, setBio] = useState('')
-  const [profileImage, setProfileImage] = useState(null)
+  const [profileImage, setProfileImage] =
+    useState(null)
+  const [profileImagePublicId, setProfileImagePublicId] =
+    useState('')
 
   // Temporary editing data
   const [editName, setEditName] = useState('')
-  const [editDepartment, setEditDepartment] = useState('')
+  const [editDepartment, setEditDepartment] =
+    useState('')
   const [editYear, setEditYear] = useState('')
   const [editHostel, setEditHostel] = useState('')
   const [editBio, setEditBio] = useState('')
-  const [editProfileImage, setEditProfileImage] = useState(null)
+  const [editProfileImage, setEditProfileImage] =
+    useState(null)
+  const [editProfileImagePublicId, setEditProfileImagePublicId] =
+    useState('')
+
+  // Profile image upload state
+  const [selectedImage, setSelectedImage] =
+    useState(null)
+  const [uploadingImage, setUploadingImage] =
+    useState(false)
+  const [savingProfile, setSavingProfile] =
+    useState(false)
+
+  // Cropper state
+  const [crop, setCrop] = useState({
+    x: 0,
+    y: 0,
+  })
+
+  const [zoom, setZoom] = useState(1)
+
+  const [croppedAreaPixels, setCroppedAreaPixels] =
+    useState(null)
+
+  const [showCropper, setShowCropper] =
+    useState(false)
+
+  const [cropImage, setCropImage] =
+    useState(null)
 
   useEffect(() => {
     loadProfile()
   }, [])
+
+  // =========================================
+  // Create cropped image
+  // =========================================
+
+  const createCroppedImage = async (
+    imageSrc,
+    pixelCrop
+  ) => {
+    const image = new Image()
+
+    image.src = imageSrc
+
+    await new Promise((resolve, reject) => {
+      image.onload = resolve
+      image.onerror = reject
+    })
+
+    const canvas =
+      document.createElement('canvas')
+
+    const context = canvas.getContext('2d')
+
+    canvas.width = pixelCrop.width
+    canvas.height = pixelCrop.height
+
+    context.drawImage(
+      image,
+      pixelCrop.x,
+      pixelCrop.y,
+      pixelCrop.width,
+      pixelCrop.height,
+      0,
+      0,
+      pixelCrop.width,
+      pixelCrop.height
+    )
+
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(
+              new Error(
+                'Failed to create cropped image'
+              )
+            )
+            return
+          }
+
+          const file = new File(
+            [blob],
+            'profile-image.jpg',
+            {
+              type: 'image/jpeg',
+            }
+          )
+
+          resolve(file)
+        },
+        'image/jpeg',
+        0.92
+      )
+    })
+  }
+
+  // =========================================
+  // Load profile
+  // =========================================
 
   const loadProfile = async () => {
     try {
@@ -43,10 +149,17 @@ function Profile() {
       setEmail(user.email || '')
       setDepartment(user.department || '')
       setYear(yearLabels[user.year] || '')
-      setProfileImage(user.profileImage || null)
+      setProfileImage(
+        user.profileImage || null
+      )
+      setProfileImagePublicId(
+        user.profileImagePublicId || ''
+      )
 
       const extraProfile = JSON.parse(
-        localStorage.getItem('studentExtraProfile') || 'null'
+        localStorage.getItem(
+          'studentExtraProfile'
+        ) || 'null'
       )
 
       if (extraProfile) {
@@ -54,9 +167,16 @@ function Profile() {
         setBio(extraProfile.bio || '')
       }
     } catch (error) {
-      console.error('Failed to load profile:', error)
+      console.error(
+        'Failed to load profile:',
+        error
+      )
     }
   }
+
+  // =========================================
+  // Start editing
+  // =========================================
 
   const startEditing = () => {
     setEditName(name)
@@ -64,26 +184,164 @@ function Profile() {
     setEditYear(year)
     setEditHostel(hostel)
     setEditBio(bio)
+
     setEditProfileImage(profileImage)
+
+    setEditProfileImagePublicId(
+      profileImagePublicId
+    )
+
+    setSelectedImage(null)
 
     setIsEditing(true)
   }
 
+  // =========================================
+  // Select profile image
+  // =========================================
+
   const handleImageChange = (event) => {
-    const file = event.target.files[0]
+    const file = event.target.files?.[0]
 
     if (!file) {
+      return
+    }
+
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+    ]
+
+    if (!allowedTypes.includes(file.type)) {
+      alert(
+        'Please select a JPG, PNG, or WEBP image'
+      )
+
+      event.target.value = ''
+      return
+    }
+
+    const maxSize = 5 * 1024 * 1024
+
+    if (file.size > maxSize) {
+      alert(
+        'Profile image must be 5 MB or less'
+      )
+
+      event.target.value = ''
       return
     }
 
     const reader = new FileReader()
 
     reader.onload = () => {
-      setEditProfileImage(reader.result)
+      setCropImage(reader.result)
+
+      setCrop({
+        x: 0,
+        y: 0,
+      })
+
+      setZoom(1)
+
+      setCroppedAreaPixels(null)
+
+      setShowCropper(true)
+    }
+
+    reader.onerror = () => {
+      alert('Failed to read image')
     }
 
     reader.readAsDataURL(file)
+
+    event.target.value = ''
   }
+
+  // =========================================
+  // Crop complete
+  // =========================================
+
+  const handleCropComplete = (
+    _croppedArea,
+    croppedAreaPixelsValue
+  ) => {
+    setCroppedAreaPixels(
+      croppedAreaPixelsValue
+    )
+  }
+
+  // =========================================
+  // Confirm crop
+  // =========================================
+
+  const handleCropConfirm = async () => {
+    if (!cropImage || !croppedAreaPixels) {
+      return
+    }
+
+    try {
+      const croppedFile =
+        await createCroppedImage(
+          cropImage,
+          croppedAreaPixels
+        )
+
+      const previewUrl =
+        URL.createObjectURL(croppedFile)
+
+      setSelectedImage(croppedFile)
+
+      setEditProfileImage(previewUrl)
+
+      setShowCropper(false)
+
+      setCropImage(null)
+    } catch (error) {
+      console.error(
+        'Crop image error:',
+        error
+      )
+
+      alert('Failed to crop image')
+    }
+  }
+
+  // =========================================
+  // Cancel crop
+  // =========================================
+
+  const handleCropCancel = () => {
+    setShowCropper(false)
+
+    setCropImage(null)
+
+    setCrop({
+      x: 0,
+      y: 0,
+    })
+
+    setZoom(1)
+  }
+
+  // =========================================
+  // Keep existing photo
+  // =========================================
+
+  const handleRemoveSelectedImage = () => {
+    setSelectedImage(null)
+
+    setEditProfileImage(profileImage)
+
+    setEditProfileImagePublicId(
+      profileImagePublicId
+    )
+  }
+
+  // =========================================
+  // Save profile
+  // =========================================
 
   const handleSave = async (event) => {
     event.preventDefault()
@@ -104,15 +362,43 @@ function Profile() {
     }
 
     try {
+      setSavingProfile(true)
+
       const numericYear = Number(
         editYear.replace(/\D/g, '')
       )
+
+      let finalProfileImage =
+        editProfileImage || ''
+
+      let finalProfileImagePublicId =
+        editProfileImagePublicId || ''
+
+      // Upload cropped image to Cloudinary
+      if (selectedImage) {
+        setUploadingImage(true)
+
+        const uploadResult =
+          await uploadToCloudinary(
+            selectedImage
+          )
+
+        finalProfileImage =
+          uploadResult.secureUrl
+
+        finalProfileImagePublicId =
+          uploadResult.publicId
+
+        setUploadingImage(false)
+      }
 
       const data = await updateProfile({
         name: editName.trim(),
         department: editDepartment.trim(),
         year: numericYear,
-        profileImage: editProfileImage || '',
+        profileImage: finalProfileImage,
+        profileImagePublicId:
+          finalProfileImagePublicId,
       })
 
       const updatedUser = data.user
@@ -126,9 +412,21 @@ function Profile() {
 
       setName(updatedUser.name || '')
       setEmail(updatedUser.email || '')
-      setDepartment(updatedUser.department || '')
-      setYear(yearLabels[updatedUser.year] || '')
-      setProfileImage(updatedUser.profileImage || null)
+      setDepartment(
+        updatedUser.department || ''
+      )
+
+      setYear(
+        yearLabels[updatedUser.year] || ''
+      )
+
+      setProfileImage(
+        updatedUser.profileImage || null
+      )
+
+      setProfileImagePublicId(
+        updatedUser.profileImagePublicId || ''
+      )
 
       setHostel(editHostel.trim())
       setBio(editBio.trim())
@@ -146,20 +444,156 @@ function Profile() {
         JSON.stringify(updatedUser)
       )
 
+      setSelectedImage(null)
+
       setIsEditing(false)
 
       alert('Profile updated successfully!')
     } catch (error) {
-      alert(error.message)
+      console.error(
+        'Profile update error:',
+        error
+      )
+
+      alert(
+        error.message ||
+          'Failed to update profile'
+      )
+    } finally {
+      setUploadingImage(false)
+      setSavingProfile(false)
     }
   }
 
+  // =========================================
+  // Cancel profile editing
+  // =========================================
+
   const handleCancel = () => {
+    setSelectedImage(null)
+
+    setEditProfileImage(profileImage)
+
+    setEditProfileImagePublicId(
+      profileImagePublicId
+    )
+
     setIsEditing(false)
   }
 
   return (
     <div className="profile-page">
+
+      {/* =========================================
+          PROFILE PHOTO CROP MODAL
+      ========================================= */}
+
+      {showCropper && (
+        <div className="crop-modal-overlay">
+
+          <div className="crop-modal">
+
+            <div className="crop-modal-header">
+
+              <div>
+                <h2>
+                  Adjust Profile Photo
+                </h2>
+
+                <p>
+                  Drag the photo and zoom to
+                  choose exactly what you want
+                  to show.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="crop-close-button"
+                onClick={
+                  handleCropCancel
+                }
+                aria-label="Close"
+              >
+                ×
+              </button>
+
+            </div>
+
+            <div className="crop-container">
+
+              <Cropper
+                image={cropImage}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={
+                  handleCropComplete
+                }
+              />
+
+            </div>
+
+            <div className="crop-controls">
+
+              <label htmlFor="profile-zoom">
+                Zoom
+              </label>
+
+              <input
+                id="profile-zoom"
+                type="range"
+                min="1"
+                max="3"
+                step="0.05"
+                value={zoom}
+                onChange={(event) =>
+                  setZoom(
+                    Number(
+                      event.target.value
+                    )
+                  )
+                }
+              />
+
+              <span>
+                {zoom.toFixed(1)}×
+              </span>
+
+            </div>
+
+            <div className="crop-modal-actions">
+
+              <button
+                type="button"
+                className="crop-cancel-button"
+                onClick={
+                  handleCropCancel
+                }
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="crop-confirm-button"
+                onClick={
+                  handleCropConfirm
+                }
+              >
+                Crop Photo
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
 
       <div className="profile-container">
 
@@ -172,43 +606,83 @@ function Profile() {
             <div className="profile-photo">
 
               {isEditing ? (
+
                 editProfileImage ? (
+
                   <img
                     src={editProfileImage}
                     alt="Profile"
                   />
+
                 ) : (
+
                   <span>
                     {name
-                      ? name.charAt(0).toUpperCase()
+                      ? name
+                          .charAt(0)
+                          .toUpperCase()
                       : 'U'}
                   </span>
+
                 )
+
               ) : profileImage ? (
+
                 <img
                   src={profileImage}
                   alt="Profile"
                 />
+
               ) : (
+
                 <span>
                   {name
-                    ? name.charAt(0).toUpperCase()
+                    ? name
+                        .charAt(0)
+                        .toUpperCase()
                     : 'U'}
                 </span>
+
               )}
 
             </div>
 
             {isEditing && (
-              <label className="photo-upload">
-                Change Photo
 
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-              </label>
+              <div className="profile-image-actions">
+
+                <label className="photo-upload">
+
+                  {selectedImage
+                    ? 'Replace Photo'
+                    : 'Change Photo'}
+
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={
+                      handleImageChange
+                    }
+                  />
+
+                </label>
+
+                {selectedImage && (
+
+                  <button
+                    type="button"
+                    className="remove-photo-button"
+                    onClick={
+                      handleRemoveSelectedImage
+                    }
+                  >
+                    Keep Existing
+                  </button>
+
+                )}
+
+              </div>
+
             )}
 
           </div>
@@ -220,18 +694,21 @@ function Profile() {
             </h1>
 
             <p>
-              {department || 'Department not added'}
+              {department ||
+                'Department not added'}
             </p>
 
           </div>
 
           {!isEditing && (
+
             <button
               className="edit-profile-button"
               onClick={startEditing}
             >
               Edit Profile
             </button>
+
           )}
 
         </div>
@@ -257,7 +734,9 @@ function Profile() {
                   type="text"
                   value={editName}
                   onChange={(event) =>
-                    setEditName(event.target.value)
+                    setEditName(
+                      event.target.value
+                    )
                   }
                   placeholder="Enter your name"
                 />
@@ -307,7 +786,9 @@ function Profile() {
                   className="year-select"
                   value={editYear}
                   onChange={(event) =>
-                    setEditYear(event.target.value)
+                    setEditYear(
+                      event.target.value
+                    )
                   }
                 >
 
@@ -363,7 +844,9 @@ function Profile() {
                 <textarea
                   value={editBio}
                   onChange={(event) =>
-                    setEditBio(event.target.value)
+                    setEditBio(
+                      event.target.value
+                    )
                   }
                   placeholder="Tell other students something about yourself..."
                 />
@@ -377,14 +860,28 @@ function Profile() {
               <button
                 type="submit"
                 className="save-profile-button"
+                disabled={
+                  savingProfile ||
+                  uploadingImage
+                }
               >
-                Save Profile
+
+                {uploadingImage
+                  ? 'Uploading Photo...'
+                  : savingProfile
+                    ? 'Saving...'
+                    : 'Save Profile'}
+
               </button>
 
               <button
                 type="button"
                 className="cancel-profile-button"
                 onClick={handleCancel}
+                disabled={
+                  savingProfile ||
+                  uploadingImage
+                }
               >
                 Cancel
               </button>
@@ -404,11 +901,13 @@ function Profile() {
               <span>📧</span>
 
               <div>
+
                 <small>Email</small>
 
                 <p>
                   {email || 'Not added'}
                 </p>
+
               </div>
 
             </div>
@@ -418,11 +917,14 @@ function Profile() {
               <span>🎓</span>
 
               <div>
+
                 <small>Department</small>
 
                 <p>
-                  {department || 'Not added'}
+                  {department ||
+                    'Not added'}
                 </p>
+
               </div>
 
             </div>
@@ -432,11 +934,13 @@ function Profile() {
               <span>📚</span>
 
               <div>
+
                 <small>Year</small>
 
                 <p>
                   {year || 'Not added'}
                 </p>
+
               </div>
 
             </div>
@@ -446,11 +950,13 @@ function Profile() {
               <span>🏠</span>
 
               <div>
+
                 <small>Hostel</small>
 
                 <p>
                   {hostel || 'Not added'}
                 </p>
+
               </div>
 
             </div>
