@@ -59,6 +59,12 @@ const marketplaceSchema = new mongoose.Schema(
             trim: true
         },
 
+        imagePublicId: {
+            type: String,
+            default: "",
+            trim: true
+        },
+
         location: {
             type: String,
             required: true,
@@ -70,4 +76,7 @@ const marketplaceSchema = new mongoose.Schema(
     }
 );
 
-module.exports = mongoose.model("Marketplace", marketplaceSchema);
+module.exports = mongoose.model(
+    "Marketplace",
+    marketplaceSchema
+);

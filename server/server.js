@@ -11,6 +11,7 @@ const academicRoutes = require("./routes/academicRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const saveRoutes = require("./routes/saveRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
 const app = express();
 
 
@@ -24,7 +25,7 @@ app.use("/api/academic-resources", academicRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/saves", saveRoutes);
-
+app.use("/api/uploads", uploadRoutes);
 
 const PORT = process.env.PORT || 5000;
 
