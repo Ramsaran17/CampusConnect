@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import {
   getLostFoundPosts,
   createLostFoundPost,
+  uploadToCloudinary,
 } from '../api'
 import './LostFound.css'
 
@@ -14,33 +15,52 @@ function LostFound() {
 
   const [type, setType] = useState('lost')
   const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [category, setCategory] = useState('')
-  const [location, setLocation] = useState('')
+  const [description, setDescription] =
+    useState('')
+  const [category, setCategory] =
+    useState('')
+  const [location, setLocation] =
+    useState('')
   const [date, setDate] = useState('')
-  const [image, setImage] = useState(null)
-  const [contactInfo, setContactInfo] = useState('')
+  const [imageFile, setImageFile] =
+    useState(null)
+  const [imagePreview, setImagePreview] =
+    useState('')
+  const [contactInfo, setContactInfo] =
+    useState('')
 
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
+  const [loading, setLoading] =
+    useState(true)
+  const [submitting, setSubmitting] =
+    useState(false)
+  const [uploadingImage, setUploadingImage] =
+    useState(false)
 
   useEffect(() => {
     loadPosts()
   }, [])
 
+  useEffect(() => {
+    return () => {
+      if (imagePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(imagePreview)
+      }
+    }
+  }, [imagePreview])
+
   const loadPosts = async () => {
     try {
       setLoading(true)
 
-      const data = await getLostFoundPosts()
+      const data =
+        await getLostFoundPosts()
 
-      const formattedPosts = (data.posts || []).map(
-        (post) => ({
+      const formattedPosts =
+        (data.posts || []).map((post) => ({
           ...post,
           id: post._id,
           type: post.type,
-        })
-      )
+        }))
 
       setItems(formattedPosts)
     } catch (error) {
@@ -58,22 +78,74 @@ function LostFound() {
     }
   }
 
-  const readImageFile = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
+  const handleImageChange = (event) => {
+    const file =
+      event.target.files?.[0]
 
-      reader.onload = () => {
-        resolve(reader.result)
-      }
+    if (!file) {
+      return
+    }
 
-      reader.onerror = () => {
-        reject(
-          new Error('Failed to read image')
-        )
-      }
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+    ]
 
-      reader.readAsDataURL(file)
-    })
+    if (!allowedTypes.includes(file.type)) {
+      alert(
+        'Please select a JPG, PNG, or WEBP image'
+      )
+
+      event.target.value = ''
+      return
+    }
+
+    const maxSize =
+      10 * 1024 * 1024
+
+    if (file.size > maxSize) {
+      alert(
+        'Image size must be 10 MB or less'
+      )
+
+      event.target.value = ''
+      return
+    }
+
+    if (imagePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(imagePreview)
+    }
+
+    setImageFile(file)
+    setImagePreview(
+      URL.createObjectURL(file)
+    )
+  }
+
+  const handleRemoveImage = () => {
+    if (imagePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(imagePreview)
+    }
+
+    setImageFile(null)
+    setImagePreview('')
+  }
+
+  const resetForm = () => {
+    if (imagePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(imagePreview)
+    }
+
+    setTitle('')
+    setDescription('')
+    setCategory('')
+    setLocation('')
+    setDate('')
+    setImageFile(null)
+    setImagePreview('')
+    setContactInfo('')
+    setType('lost')
   }
 
   const handleSubmit = async (event) => {
@@ -105,42 +177,58 @@ function LostFound() {
     }
 
     if (!contactInfo.trim()) {
-      alert('Please enter contact information')
+      alert(
+        'Please enter contact information'
+      )
       return
     }
 
     try {
       setSubmitting(true)
 
-      let imageData = ''
+      let image = ''
+      let imagePublicId = ''
 
-      if (image) {
-        imageData = await readImageFile(image)
+      if (imageFile) {
+        setUploadingImage(true)
+
+        const uploadResult =
+          await uploadToCloudinary(
+            imageFile
+          )
+
+        image =
+          uploadResult.secureUrl
+
+        imagePublicId =
+          uploadResult.publicId
+
+        setUploadingImage(false)
       }
 
       await createLostFoundPost({
         type,
         title: title.trim(),
-        description: description.trim(),
+        description:
+          description.trim(),
         category: category.trim(),
         location: location.trim(),
         date,
-        image: imageData,
-        contactInfo: contactInfo.trim(),
+        image,
+        imagePublicId,
+        contactInfo:
+          contactInfo.trim(),
       })
 
       alert(
-        `${type === 'lost' ? 'Lost' : 'Found'} item reported successfully!`
+        `${
+          type === 'lost'
+            ? 'Lost'
+            : 'Found'
+        } item reported successfully!`
       )
 
-      setTitle('')
-      setDescription('')
-      setCategory('')
-      setLocation('')
-      setDate('')
-      setImage(null)
-      setContactInfo('')
-      setType('lost')
+      resetForm()
       setShowForm(false)
 
       await loadPosts()
@@ -155,49 +243,61 @@ function LostFound() {
           'Failed to create Lost & Found post'
       )
     } finally {
+      setUploadingImage(false)
       setSubmitting(false)
     }
   }
 
-  const filteredItems = items.filter((item) => {
-    const currentType =
-      item.type === 'lost' ? 'Lost' : 'Found'
+  const filteredItems =
+    items.filter((item) => {
+      const currentType =
+        item.type === 'lost'
+          ? 'Lost'
+          : 'Found'
 
-    const matchesFilter =
-      filter === 'All' ||
-      currentType === filter
+      const matchesFilter =
+        filter === 'All' ||
+        currentType === filter
 
-    const searchText = search.toLowerCase()
+      const searchText =
+        search.toLowerCase()
 
-    const matchesSearch =
-      item.title
-        .toLowerCase()
-        .includes(searchText) ||
-      item.description
-        .toLowerCase()
-        .includes(searchText) ||
-      item.location
-        .toLowerCase()
-        .includes(searchText)
+      const matchesSearch =
+        item.title
+          .toLowerCase()
+          .includes(searchText) ||
+        item.description
+          .toLowerCase()
+          .includes(searchText) ||
+        item.location
+          .toLowerCase()
+          .includes(searchText)
 
-    return matchesFilter && matchesSearch
-  })
+      return (
+        matchesFilter &&
+        matchesSearch
+      )
+    })
 
   return (
     <div className="lost-found-page">
 
       <section className="lost-found-header">
 
-        <h1>Lost & Found</h1>
+        <h1>Lost &amp; Found</h1>
 
         <p>
-          Find lost items or report something you found
-          on campus.
+          Find lost items or report something
+          you found on campus.
         </p>
 
         <button
           className="report-button"
-          onClick={() => setShowForm(!showForm)}
+          onClick={() =>
+            setShowForm(
+              (current) => !current
+            )
+          }
         >
           {showForm
             ? 'Close Form'
@@ -211,13 +311,17 @@ function LostFound() {
 
           <div className="report-container">
 
-            <h2>Report Lost or Found Item</h2>
+            <h2>
+              Report Lost or Found Item
+            </h2>
 
             <form onSubmit={handleSubmit}>
 
               <div className="form-group">
 
-                <label>Item Status</label>
+                <label>
+                  Item Status
+                </label>
 
                 <div className="type-buttons">
 
@@ -228,7 +332,9 @@ function LostFound() {
                         ? 'type-button active'
                         : 'type-button'
                     }
-                    onClick={() => setType('lost')}
+                    onClick={() =>
+                      setType('lost')
+                    }
                   >
                     I Lost Something
                   </button>
@@ -240,7 +346,9 @@ function LostFound() {
                         ? 'type-button active'
                         : 'type-button'
                     }
-                    onClick={() => setType('found')}
+                    onClick={() =>
+                      setType('found')
+                    }
                   >
                     I Found Something
                   </button>
@@ -251,13 +359,17 @@ function LostFound() {
 
               <div className="form-group">
 
-                <label>Item Title</label>
+                <label>
+                  Item Title
+                </label>
 
                 <input
                   type="text"
                   value={title}
                   onChange={(event) =>
-                    setTitle(event.target.value)
+                    setTitle(
+                      event.target.value
+                    )
                   }
                   placeholder="Example: Black Wallet"
                 />
@@ -266,12 +378,16 @@ function LostFound() {
 
               <div className="form-group">
 
-                <label>Description</label>
+                <label>
+                  Description
+                </label>
 
                 <textarea
                   value={description}
                   onChange={(event) =>
-                    setDescription(event.target.value)
+                    setDescription(
+                      event.target.value
+                    )
                   }
                   placeholder="Describe the item..."
                 />
@@ -280,12 +396,16 @@ function LostFound() {
 
               <div className="form-group">
 
-                <label>Category</label>
+                <label>
+                  Category
+                </label>
 
                 <select
                   value={category}
                   onChange={(event) =>
-                    setCategory(event.target.value)
+                    setCategory(
+                      event.target.value
+                    )
                   }
                 >
                   <option value="">
@@ -321,13 +441,17 @@ function LostFound() {
 
               <div className="form-group">
 
-                <label>Location</label>
+                <label>
+                  Location
+                </label>
 
                 <input
                   type="text"
                   value={location}
                   onChange={(event) =>
-                    setLocation(event.target.value)
+                    setLocation(
+                      event.target.value
+                    )
                   }
                   placeholder="Example: Central Library"
                 />
@@ -336,13 +460,17 @@ function LostFound() {
 
               <div className="form-group">
 
-                <label>Date</label>
+                <label>
+                  Date
+                </label>
 
                 <input
                   type="date"
                   value={date}
                   onChange={(event) =>
-                    setDate(event.target.value)
+                    setDate(
+                      event.target.value
+                    )
                   }
                 />
 
@@ -350,13 +478,17 @@ function LostFound() {
 
               <div className="form-group">
 
-                <label>Contact Information</label>
+                <label>
+                  Contact Information
+                </label>
 
                 <input
                   type="text"
                   value={contactInfo}
                   onChange={(event) =>
-                    setContactInfo(event.target.value)
+                    setContactInfo(
+                      event.target.value
+                    )
                   }
                   placeholder="Phone number or email"
                 />
@@ -365,28 +497,94 @@ function LostFound() {
 
               <div className="form-group">
 
-                <label>Item Image</label>
+                <label>
+                  Item Image
+                </label>
 
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(event) =>
-                    setImage(
-                      event.target.files[0] || null
-                    )
-                  }
-                />
+                <div className="image-upload-box">
+
+                  {!imagePreview ? (
+                    <>
+                      <div className="image-upload-icon">
+                        📷
+                      </div>
+
+                      <p>
+                        Upload an image of the
+                        lost or found item
+                      </p>
+
+                      <span>
+                        JPG, PNG or WEBP • Max 10 MB
+                      </span>
+
+                      <label className="image-select-button">
+                        Choose Image
+
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={
+                            handleImageChange
+                          }
+                        />
+                      </label>
+                    </>
+                  ) : (
+                    <div className="image-preview-wrapper">
+
+                      <img
+                        src={imagePreview}
+                        alt="Selected item"
+                        className="image-preview"
+                      />
+
+                      <div className="image-preview-actions">
+
+                        <label className="image-change-button">
+                          Change Image
+
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={
+                              handleImageChange
+                            }
+                          />
+                        </label>
+
+                        <button
+                          type="button"
+                          className="image-remove-button"
+                          onClick={
+                            handleRemoveImage
+                          }
+                        >
+                          Remove
+                        </button>
+
+                      </div>
+
+                    </div>
+                  )}
+
+                </div>
 
               </div>
 
               <button
                 className="submit-report-button"
                 type="submit"
-                disabled={submitting}
+                disabled={
+                  submitting ||
+                  uploadingImage
+                }
               >
-                {submitting
-                  ? 'Reporting...'
-                  : 'Report Item'}
+                {uploadingImage
+                  ? 'Uploading image...'
+                  : submitting
+                    ? 'Reporting...'
+                    : 'Report Item'}
               </button>
 
             </form>
@@ -405,14 +603,18 @@ function LostFound() {
             placeholder="Search lost or found items..."
             value={search}
             onChange={(event) =>
-              setSearch(event.target.value)
+              setSearch(
+                event.target.value
+              )
             }
           />
 
           <select
             value={filter}
             onChange={(event) =>
-              setFilter(event.target.value)
+              setFilter(
+                event.target.value
+              )
             }
           >
             <option value="All">
@@ -438,7 +640,9 @@ function LostFound() {
 
         {loading ? (
           <div className="no-items">
-            <h3>Loading items...</h3>
+            <h3>
+              Loading items...
+            </h3>
           </div>
         ) : filteredItems.length > 0 ? (
           <div className="lost-found-grid">
@@ -459,7 +663,9 @@ function LostFound() {
                       alt={item.title}
                     />
                   ) : (
-                    <span>No image</span>
+                    <span>
+                      No image
+                    </span>
                   )}
 
                 </div>
@@ -468,7 +674,9 @@ function LostFound() {
 
                   <div className="card-title-row">
 
-                    <h3>{item.title}</h3>
+                    <h3>
+                      {item.title}
+                    </h3>
 
                     <span
                       className={
@@ -491,7 +699,8 @@ function LostFound() {
                   <div className="item-info">
 
                     <span>
-                      Category: {item.category}
+                      Category:{' '}
+                      {item.category}
                     </span>
 
                     <span>
@@ -514,10 +723,13 @@ function LostFound() {
         ) : (
           <div className="no-items">
 
-            <h3>No items found</h3>
+            <h3>
+              No items found
+            </h3>
 
             <p>
-              Try changing your search or filter.
+              Try changing your search or
+              filter.
             </p>
 
           </div>
