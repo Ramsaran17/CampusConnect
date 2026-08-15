@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   getSavedItems,
   removeSavedItem,
@@ -6,6 +7,8 @@ import {
 import './Saved.css'
 
 function Saved() {
+  const navigate = useNavigate()
+
   const [savedItems, setSavedItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -38,9 +41,12 @@ function Saved() {
   }
 
   const handleRemove = async (
+    event,
     itemType,
     itemId
   ) => {
+    event.stopPropagation()
+
     try {
       await removeSavedItem(
         itemType,
@@ -52,7 +58,7 @@ function Saved() {
           (item) =>
             !(
               item.itemType === itemType &&
-              item.itemId === itemId
+              String(item.itemId) === String(itemId)
             )
         )
       )
@@ -69,9 +75,7 @@ function Saved() {
     }
   }
 
-  const getItemTypeLabel = (
-    itemType
-  ) => {
+  const getItemTypeLabel = (itemType) => {
     switch (itemType) {
       case 'marketplace':
         return 'Marketplace'
@@ -86,7 +90,174 @@ function Saved() {
         return 'Lost & Found'
 
       default:
-        return itemType
+        return 'Saved Item'
+    }
+  }
+
+  const getItemTitle = (saved) => {
+    if (!saved.item) {
+      return 'Item no longer available'
+    }
+
+    return saved.item.title || 'Untitled Item'
+  }
+
+  const getItemImage = (saved) => {
+    if (!saved.item) {
+      return ''
+    }
+
+    if (
+      saved.itemType === 'marketplace' ||
+      saved.itemType === 'event' ||
+      saved.itemType === 'lost-found'
+    ) {
+      return saved.item.image || ''
+    }
+
+    return ''
+  }
+
+  const getItemPreview = (saved) => {
+    const item = saved.item
+
+    if (!item) {
+      return 'This item is no longer available.'
+    }
+
+    if (saved.itemType === 'marketplace') {
+      return item.description || 'Marketplace listing'
+    }
+
+    if (saved.itemType === 'academic') {
+      return `${item.subject} • ${item.department} • Year ${item.year}`
+    }
+
+    if (saved.itemType === 'event') {
+      return `${item.organizer} • ${item.location}`
+    }
+
+    if (saved.itemType === 'lost-found') {
+      return `${item.type === 'lost' ? 'Lost' : 'Found'} • ${item.location}`
+    }
+
+    return ''
+  }
+
+  const getItemMeta = (saved) => {
+    const item = saved.item
+
+    if (!item) {
+      return null
+    }
+
+    if (saved.itemType === 'marketplace') {
+      return (
+        <div className="saved-card-meta">
+          <span>
+            📍 {item.location}
+          </span>
+
+          <strong>
+            {item.isFree
+              ? 'Free'
+              : `₹${item.price}`}
+          </strong>
+        </div>
+      )
+    }
+
+    if (saved.itemType === 'academic') {
+      return (
+        <div className="saved-card-meta">
+          <span>
+            📚 {item.resourceType}
+          </span>
+
+          <span>
+            Semester {item.semester}
+          </span>
+        </div>
+      )
+    }
+
+    if (saved.itemType === 'event') {
+      return (
+        <div className="saved-card-meta">
+          <span>
+            📍 {item.location}
+          </span>
+
+          <span>
+            🗓️{' '}
+            {new Date(
+              item.date
+            ).toLocaleDateString()}
+          </span>
+        </div>
+      )
+    }
+
+    if (saved.itemType === 'lost-found') {
+      return (
+        <div className="saved-card-meta">
+          <span>
+            📍 {item.location}
+          </span>
+
+          <span>
+            {item.type === 'lost'
+              ? '🔎 Lost'
+              : '📦 Found'}
+          </span>
+        </div>
+      )
+    }
+
+    return null
+  }
+
+  const getItemPath = (saved) => {
+    if (!saved.item) {
+      return null
+    }
+
+    switch (saved.itemType) {
+      case 'marketplace':
+        return `/marketplace/${saved.itemId}`
+
+      case 'academic':
+        return `/academic/${saved.itemId}`
+
+      case 'event':
+        return `/events/${saved.itemId}`
+
+      case 'lost-found':
+        return `/lost-found/${saved.itemId}`
+
+      default:
+        return null
+    }
+  }
+
+  const handleCardClick = (saved) => {
+    const path = getItemPath(saved)
+
+    if (path) {
+      navigate(path)
+    }
+  }
+
+  const handleCardKeyDown = (
+    event,
+    saved
+  ) => {
+    if (
+      event.key === 'Enter' ||
+      event.key === ' '
+    ) {
+      event.preventDefault()
+      handleCardClick(saved)
     }
   }
 
@@ -95,13 +266,23 @@ function Saved() {
 
       <section className="saved-header">
 
-        <h1>Saved Items</h1>
+        <div className="saved-header-content">
 
-        <p>
-          Keep your important Marketplace,
-          Academic, Event, and Lost & Found
-          items in one place.
-        </p>
+          <span className="saved-header-icon">
+            🔖
+          </span>
+
+          <div>
+            <h1>Saved Items</h1>
+
+            <p>
+              Quickly access the Marketplace,
+              Academic Resources, Events, and
+              Lost & Found items you saved.
+            </p>
+          </div>
+
+        </div>
 
       </section>
 
@@ -110,9 +291,9 @@ function Saved() {
         {loading ? (
           <div className="saved-empty">
 
-            <h2>
-              Loading saved items...
-            </h2>
+            <div className="saved-loading">
+              Loading your saved items...
+            </div>
 
           </div>
         ) : error ? (
@@ -131,58 +312,130 @@ function Saved() {
             </h2>
 
             <p>
-              Items you save from Marketplace,
-              Academic Resources, Events, or
-              Lost & Found will appear here.
+              Save useful listings, resources,
+              events, or Lost & Found posts and
+              they will appear here.
             </p>
 
           </div>
         ) : (
           <div className="saved-grid">
 
-            {savedItems.map((item) => (
-              <article
-                className="saved-card"
-                key={item._id}
-              >
+            {savedItems.map((saved) => {
+              const image =
+                getItemImage(saved)
 
-                <div className="saved-card-top">
+              const isAvailable =
+                Boolean(saved.item)
 
-                  <span className="saved-type">
-                    {getItemTypeLabel(
-                      item.itemType
+              return (
+                <article
+                  key={saved._id}
+                  className={`saved-card ${
+                    !isAvailable
+                      ? 'saved-card-unavailable'
+                      : ''
+                  }`}
+                  onClick={() =>
+                    handleCardClick(saved)
+                  }
+                  onKeyDown={(event) =>
+                    handleCardKeyDown(
+                      event,
+                      saved
+                    )
+                  }
+                  role={
+                    isAvailable
+                      ? 'button'
+                      : undefined
+                  }
+                  tabIndex={
+                    isAvailable
+                      ? 0
+                      : undefined
+                  }
+                >
+
+                  <div className="saved-card-image">
+
+                    {image ? (
+                      <img
+                        src={image}
+                        alt={getItemTitle(
+                          saved
+                        )}
+                      />
+                    ) : (
+                      <div className="saved-card-placeholder">
+
+                        {saved.itemType ===
+                        'academic'
+                          ? '📚'
+                          : saved.itemType ===
+                            'event'
+                          ? '🎉'
+                          : saved.itemType ===
+                            'lost-found'
+                          ? '🔎'
+                          : '📦'}
+
+                      </div>
                     )}
-                  </span>
 
-                  <button
-                    type="button"
-                    className="saved-remove-button"
-                    onClick={() =>
-                      handleRemove(
-                        item.itemType,
-                        item.itemId
-                      )
-                    }
-                  >
-                    Remove
-                  </button>
+                    <span className="saved-type-badge">
+                      {getItemTypeLabel(
+                        saved.itemType
+                      )}
+                    </span>
 
-                </div>
+                  </div>
 
-                <div className="saved-card-content">
+                  <div className="saved-card-body">
 
-                  <h3>
-                    Saved Item
-                  </h3>
+                    <div className="saved-card-title-row">
 
-                  <p>
-                    Item ID: {item.itemId}
-                  </p>
+                      <h3>
+                        {getItemTitle(
+                          saved
+                        )}
+                      </h3>
 
-                </div>
+                      <button
+                        type="button"
+                        className="saved-remove-button"
+                        onClick={(event) =>
+                          handleRemove(
+                            event,
+                            saved.itemType,
+                            saved.itemId
+                          )
+                        }
+                      >
+                        Remove
+                      </button>
 
-              </article>
-            ))}
+                    </div>
+
+                    <p className="saved-card-description">
+                      {getItemPreview(
+                        saved
+                      )}
+                    </p>
+
+                    {getItemMeta(saved)}
+
+                    {isAvailable && (
+                      <div className="saved-view-link">
+                        View details →
+                      </div>
+                    )}
+
+                  </div>
+
+                </article>
+              )
+            })}
 
           </div>
         )}
