@@ -20,6 +20,7 @@ import EventDetails from './pages/EventDetails'
 import EditEvent from './pages/EditEvent'
 import Messages from './pages/Messages'
 import EditListing from './pages/EditListing'
+import Saved from './pages/Saved'
 
 function App() {
   return (
@@ -112,6 +113,11 @@ function App() {
             path="/messages"
             element={<Messages />}
           />
+
+          <Route
+  path="/saved"
+  element={<Saved />}
+/>
 
         </Route>
 
