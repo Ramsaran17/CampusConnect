@@ -1,4 +1,4 @@
-const API_URL = 'http://10.1.20.96:5000'
+const API_URL = 'http://10.100.36.141:5000'
 
 const getToken = () => {
   return localStorage.getItem('token')
@@ -674,4 +674,185 @@ export const getUsers = async (search = '') => {
   }
 
   return data
+}
+
+/* =========================
+   SAVED ITEMS
+========================= */
+
+export const saveItem = async (
+  itemType,
+  itemId
+) => {
+  const response = await fetch(
+    `${API_URL}/api/saves`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({
+        itemType,
+        itemId,
+      }),
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        'Failed to save item'
+    )
+  }
+
+  return data
+}
+
+export const getSavedItems = async () => {
+  const response = await fetch(
+    `${API_URL}/api/saves`,
+    {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        'Failed to fetch saved items'
+    )
+  }
+
+  return data
+}
+
+export const checkSaved = async (
+  itemType,
+  itemId
+) => {
+  const response = await fetch(
+    `${API_URL}/api/saves/check/${itemType}/${itemId}`,
+    {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        'Failed to check saved item'
+    )
+  }
+
+  return data
+}
+
+export const removeSavedItem = async (
+  itemType,
+  itemId
+) => {
+  const response = await fetch(
+    `${API_URL}/api/saves/${itemType}/${itemId}`,
+    {
+      method: 'DELETE',
+      headers: {
+        ...getAuthHeaders(),
+      },
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        'Failed to remove saved item'
+    )
+  }
+
+  return data
+}
+
+export const uploadToCloudinary = async (file) => {
+  if (!file) {
+    throw new Error('Please select a file')
+  }
+
+  const allowedTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'application/pdf',
+  ]
+
+  if (!allowedTypes.includes(file.type)) {
+    throw new Error(
+      'Only JPG, PNG, WEBP, and PDF files are allowed'
+    )
+  }
+
+  const maxSize = 10 * 1024 * 1024
+
+  if (file.size > maxSize) {
+    throw new Error(
+      'File size must be 10 MB or less'
+    )
+  }
+
+  const cloudName =
+    import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+
+  const uploadPreset =
+    import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
+
+  if (!cloudName || !uploadPreset) {
+    throw new Error(
+      'Cloudinary configuration is missing'
+    )
+  }
+
+  const formData = new FormData()
+
+  formData.append('file', file)
+  formData.append(
+    'upload_preset',
+    uploadPreset
+  )
+
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+    {
+      method: 'POST',
+      body: formData,
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error?.message ||
+        'Cloudinary upload failed'
+    )
+  }
+
+  return {
+    secureUrl: data.secure_url,
+    publicId: data.public_id,
+    resourceType: data.resource_type,
+    format: data.format,
+    originalFilename:
+      data.original_filename || file.name,
+  }
 }

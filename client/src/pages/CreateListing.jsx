@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createListing } from '../api'
+import {
+  createListing,
+  uploadToCloudinary,
+} from '../api'
 import './CreateListing.css'
 
 function CreateListing() {
@@ -12,9 +15,64 @@ function CreateListing() {
   const [isFree, setIsFree] = useState(false)
   const [category, setCategory] = useState('')
   const [condition, setCondition] = useState('')
-  const [image, setImage] = useState(null)
+  const [imageFile, setImageFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState('')
   const [location, setLocation] = useState('')
+
   const [loading, setLoading] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(imagePreview)
+      }
+    }
+  }, [imagePreview])
+
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+    ]
+
+    if (!allowedTypes.includes(file.type)) {
+      alert('Please select a JPG, PNG, or WEBP image')
+      event.target.value = ''
+      return
+    }
+
+    const maxSize = 10 * 1024 * 1024
+
+    if (file.size > maxSize) {
+      alert('Image size must be 10 MB or less')
+      event.target.value = ''
+      return
+    }
+
+    if (imagePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(imagePreview)
+    }
+
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
+  }
+
+  const handleRemoveImage = () => {
+    if (imagePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(imagePreview)
+    }
+
+    setImageFile(null)
+    setImagePreview('')
+  }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -44,28 +102,48 @@ function CreateListing() {
       return
     }
 
-    if (!isFree && !price) {
+    if (!isFree && price === '') {
       alert('Please enter a price or select free')
+      return
+    }
+
+    const numericPrice = isFree ? 0 : Number(price)
+
+    if (
+      !isFree &&
+      (Number.isNaN(numericPrice) || numericPrice < 0)
+    ) {
+      alert('Please enter a valid price')
       return
     }
 
     try {
       setLoading(true)
 
-      let imageData = ''
+      let image = ''
+      let imagePublicId = ''
 
-      if (image) {
-        imageData = await readImageFile(image)
+      if (imageFile) {
+        setUploadingImage(true)
+
+        const uploadResult =
+          await uploadToCloudinary(imageFile)
+
+        image = uploadResult.secureUrl
+        imagePublicId = uploadResult.publicId
+
+        setUploadingImage(false)
       }
 
       await createListing({
         title: title.trim(),
         description: description.trim(),
-        price: isFree ? 0 : Number(price),
+        price: numericPrice,
         isFree,
         category,
         condition,
-        image: imageData,
+        image,
+        imagePublicId,
         location: location.trim(),
       })
 
@@ -73,41 +151,32 @@ function CreateListing() {
 
       navigate('/marketplace')
     } catch (error) {
-      alert(error.message)
+      console.error('Create listing error:', error)
+
+      alert(
+        error.message ||
+          'Failed to post item'
+      )
     } finally {
+      setUploadingImage(false)
       setLoading(false)
     }
   }
 
-  const readImageFile = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-
-      reader.onload = () => {
-        resolve(reader.result)
-      }
-
-      reader.onerror = () => {
-        reject(
-          new Error('Failed to read image')
-        )
-      }
-
-      reader.readAsDataURL(file)
-    })
-  }
-
   return (
     <div className="create-listing-page">
-
       <div className="create-listing-container">
 
         <h1>Post an Item</h1>
 
+        <p className="listing-form-subtitle">
+          Sell or give away useful items to
+          fellow students.
+        </p>
+
         <form onSubmit={handleSubmit}>
 
           <div className="form-group">
-
             <label>Item Title</label>
 
             <input
@@ -118,25 +187,23 @@ function CreateListing() {
               }
               placeholder="Example: Study Table"
             />
-
           </div>
 
           <div className="form-group">
-
             <label>Description</label>
 
             <textarea
               value={description}
               onChange={(event) =>
-                setDescription(event.target.value)
+                setDescription(
+                  event.target.value
+                )
               }
               placeholder="Describe the item..."
             />
-
           </div>
 
           <div className="form-group">
-
             <label>Category</label>
 
             <select
@@ -145,7 +212,6 @@ function CreateListing() {
                 setCategory(event.target.value)
               }
             >
-
               <option value="">
                 Select a category
               </option>
@@ -169,13 +235,10 @@ function CreateListing() {
               <option value="other">
                 Other
               </option>
-
             </select>
-
           </div>
 
           <div className="form-group">
-
             <label>Condition</label>
 
             <select
@@ -184,7 +247,6 @@ function CreateListing() {
                 setCondition(event.target.value)
               }
             >
-
               <option value="">
                 Select condition
               </option>
@@ -200,27 +262,76 @@ function CreateListing() {
               <option value="used">
                 Used
               </option>
-
             </select>
-
           </div>
 
           <div className="form-group">
-
             <label>Item Image</label>
 
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(event) =>
-                setImage(event.target.files[0])
-              }
-            />
+            <div className="image-upload-box">
 
+              {!imagePreview ? (
+                <>
+                  <div className="image-upload-icon">
+                    📷
+                  </div>
+
+                  <p>
+                    Upload an image of your item
+                  </p>
+
+                  <span>
+                    JPG, PNG or WEBP • Max 10 MB
+                  </span>
+
+                  <label className="image-select-button">
+                    Choose Image
+
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleImageChange}
+                    />
+                  </label>
+                </>
+              ) : (
+                <div className="image-preview-wrapper">
+
+                  <img
+                    src={imagePreview}
+                    alt="Selected item"
+                    className="image-preview"
+                  />
+
+                  <div className="image-preview-actions">
+
+                    <label className="image-change-button">
+                      Change Image
+
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleImageChange}
+                      />
+                    </label>
+
+                    <button
+                      type="button"
+                      className="image-remove-button"
+                      onClick={handleRemoveImage}
+                    >
+                      Remove
+                    </button>
+
+                  </div>
+
+                </div>
+              )}
+
+            </div>
           </div>
 
           <div className="form-group">
-
             <label>Pickup Location</label>
 
             <input
@@ -231,7 +342,6 @@ function CreateListing() {
               }
               placeholder="Example: Hostel 3, Main Gate"
             />
-
           </div>
 
           <div className="free-option">
@@ -271,17 +381,21 @@ function CreateListing() {
           <button
             className="submit-button"
             type="submit"
-            disabled={loading}
+            disabled={
+              loading ||
+              uploadingImage
+            }
           >
-            {loading
-              ? 'Posting...'
-              : 'Post Item'}
+            {uploadingImage
+              ? 'Uploading image...'
+              : loading
+                ? 'Posting...'
+                : 'Post Item'}
           </button>
 
         </form>
 
       </div>
-
     </div>
   )
 }
