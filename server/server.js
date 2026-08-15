@@ -20,17 +20,19 @@ const app = express();
    CORS
 ========================= */
 
-app.use(
-    cors({
-        origin: [
-            "http://localhost:5173",
-            "https://dummy-project-1-dfsr.onrender.com"
-        ],
-        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization"],
-        credentials: true
-    })
-);
+const corsOptions = {
+    origin: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
+
+/* =========================
+   MIDDLEWARE
+========================= */
 
 app.use(express.json());
 
@@ -49,7 +51,7 @@ app.use("/api/saves", saveRoutes);
 app.use("/api/uploads", uploadRoutes);
 
 /* =========================
-   ROOT
+   ROOT ROUTE
 ========================= */
 
 app.get("/", (req, res) => {
@@ -57,7 +59,7 @@ app.get("/", (req, res) => {
 });
 
 /* =========================
-   SERVER
+   START SERVER
 ========================= */
 
 const PORT = process.env.PORT || 5000;
@@ -71,6 +73,7 @@ const startServer = async () => {
         });
     } catch (error) {
         console.error("Failed to start server:", error);
+        process.exit(1);
     }
 };
 
