@@ -49,6 +49,12 @@ const lostFoundSchema = new mongoose.Schema(
             trim: true
         },
 
+        imagePublicId: {
+            type: String,
+            default: "",
+            trim: true
+        },
+
         contactInfo: {
             type: String,
             required: true,
@@ -66,4 +72,7 @@ const lostFoundSchema = new mongoose.Schema(
     }
 );
 
-module.exports = mongoose.model("LostFound", lostFoundSchema);
+module.exports = mongoose.model(
+    "LostFound",
+    lostFoundSchema
+);
