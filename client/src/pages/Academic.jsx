@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   getAcademicResources,
   createAcademicResource,
+  uploadToCloudinary,
 } from '../api'
 import './Academic.css'
 
@@ -53,10 +54,14 @@ function Academic() {
   const [year, setYear] = useState('')
   const [semester, setSemester] = useState('')
   const [resourceType, setResourceType] = useState('')
-  const [fileUrl, setFileUrl] = useState('')
+
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [filePreview, setFilePreview] = useState('')
+  const [fileName, setFileName] = useState('')
 
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [uploadingFile, setUploadingFile] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -84,6 +89,65 @@ function Academic() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+    ]
+
+    if (!allowedTypes.includes(file.type)) {
+      alert(
+        'Please select a PDF, JPG, PNG, or WEBP file'
+      )
+
+      event.target.value = ''
+      return
+    }
+
+    const maxSize = 10 * 1024 * 1024
+
+    if (file.size > maxSize) {
+      alert('File size must be 10 MB or less')
+
+      event.target.value = ''
+      return
+    }
+
+    setSelectedFile(file)
+    setFileName(file.name)
+
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader()
+
+      reader.onload = () => {
+        setFilePreview(reader.result)
+      }
+
+      reader.onerror = () => {
+        setFilePreview('')
+        alert('Failed to preview image')
+      }
+
+      reader.readAsDataURL(file)
+    } else {
+      setFilePreview('')
+    }
+  }
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null)
+    setFilePreview('')
+    setFileName('')
   }
 
   const handleSubmit = async (event) => {
@@ -119,13 +183,19 @@ function Academic() {
       return
     }
 
-    if (!fileUrl.trim()) {
-      alert('Please provide a resource URL')
+    if (!selectedFile) {
+      alert('Please select a resource file')
       return
     }
 
     try {
       setSubmitting(true)
+      setUploadingFile(true)
+
+      const uploadResult =
+        await uploadToCloudinary(selectedFile)
+
+      setUploadingFile(false)
 
       await createAcademicResource({
         title: title.trim(),
@@ -135,7 +205,8 @@ function Academic() {
         year: Number(year),
         semester: Number(semester),
         resourceType,
-        fileUrl: fileUrl.trim(),
+        fileUrl: uploadResult.secureUrl,
+        filePublicId: uploadResult.publicId,
       })
 
       alert('Academic resource added successfully!')
@@ -147,7 +218,9 @@ function Academic() {
       setYear('')
       setSemester('')
       setResourceType('')
-      setFileUrl('')
+      setSelectedFile(null)
+      setFilePreview('')
+      setFileName('')
       setShowForm(false)
 
       await loadResources()
@@ -162,6 +235,7 @@ function Academic() {
           'Failed to create academic resource'
       )
     } finally {
+      setUploadingFile(false)
       setSubmitting(false)
     }
   }
@@ -218,7 +292,7 @@ function Academic() {
 
   const openResource = (fileUrl) => {
     if (!fileUrl) {
-      alert('No resource URL available')
+      alert('No resource file available')
       return
     }
 
@@ -231,9 +305,7 @@ function Academic() {
 
   return (
     <div className="academic-page">
-
       <section className="academic-header">
-
         <h1>Academic Resources</h1>
 
         <p>
@@ -252,18 +324,14 @@ function Academic() {
             ? 'Close Form'
             : 'Add Resource'}
         </button>
-
       </section>
 
       {showForm && (
         <section className="academic-form-section">
-
           <div className="academic-form-container">
-
             <h2>Add Academic Resource</h2>
 
             <form onSubmit={handleSubmit}>
-
               <div className="form-group">
                 <label>Resource Title</label>
 
@@ -400,44 +468,126 @@ function Academic() {
               </div>
 
               <div className="form-group">
-                <label>Resource URL</label>
+                <label>Resource File</label>
 
-                <input
-                  type="url"
-                  value={fileUrl}
-                  onChange={(event) =>
-                    setFileUrl(event.target.value)
-                  }
-                  placeholder="https://example.com/resource"
-                />
+                <div className="academic-file-upload-box">
+                  {filePreview ? (
+                    <div className="academic-file-preview-wrapper">
+                      <img
+                        src={filePreview}
+                        alt="Resource preview"
+                        className="academic-file-preview"
+                      />
 
-                <small>
-                  Provide a Google Drive, GitHub,
-                  OneDrive, or other resource link.
-                </small>
+                      <div className="academic-file-info">
+                        <strong>{fileName}</strong>
+
+                        <div className="academic-file-actions">
+                          <label className="academic-file-change-button">
+                            Replace File
+
+                            <input
+                              type="file"
+                              accept=".pdf,image/jpeg,image/png,image/webp"
+                              onChange={handleFileChange}
+                            />
+                          </label>
+
+                          <button
+                            type="button"
+                            className="academic-file-remove-button"
+                            onClick={handleRemoveFile}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : selectedFile ? (
+                    <div className="academic-selected-file">
+                      <div className="academic-file-icon">
+                        📄
+                      </div>
+
+                      <strong>{fileName}</strong>
+
+                      <span>
+                        PDF document selected
+                      </span>
+
+                      <div className="academic-file-actions">
+                        <label className="academic-file-change-button">
+                          Replace File
+
+                          <input
+                            type="file"
+                            accept=".pdf,image/jpeg,image/png,image/webp"
+                            onChange={handleFileChange}
+                          />
+                        </label>
+
+                        <button
+                          type="button"
+                          className="academic-file-remove-button"
+                          onClick={handleRemoveFile}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="academic-upload-icon">
+                        📚
+                      </div>
+
+                      <h3>
+                        Upload Academic Resource
+                      </h3>
+
+                      <p>
+                        Choose a PDF, JPG, PNG, or WEBP
+                        file
+                      </p>
+
+                      <span>
+                        Maximum file size: 10 MB
+                      </span>
+
+                      <label className="academic-file-select-button">
+                        Choose File
+
+                        <input
+                          type="file"
+                          accept=".pdf,image/jpeg,image/png,image/webp"
+                          onChange={handleFileChange}
+                        />
+                      </label>
+                    </>
+                  )}
+                </div>
               </div>
 
               <button
                 className="submit-resource-button"
                 type="submit"
-                disabled={submitting}
+                disabled={
+                  submitting || uploadingFile
+                }
               >
-                {submitting
-                  ? 'Adding...'
-                  : 'Add Resource'}
+                {uploadingFile
+                  ? 'Uploading file...'
+                  : submitting
+                    ? 'Adding...'
+                    : 'Add Resource'}
               </button>
-
             </form>
-
           </div>
-
         </section>
       )}
 
       <section className="academic-content">
-
         <div className="academic-toolbar">
-
           <input
             type="text"
             placeholder="Search resources..."
@@ -486,7 +636,6 @@ function Academic() {
               )
             )}
           </select>
-
         </div>
 
         <h2>Available Resources</h2>
@@ -502,33 +651,25 @@ function Academic() {
           </div>
         ) : filteredResources.length > 0 ? (
           <div className="academic-grid">
-
             {filteredResources.map(
               (resource) => (
-
                 <div
                   className="academic-card"
                   key={resource._id}
                 >
-
                   <div className="academic-card-icon">
                     📚
                   </div>
 
                   <div className="academic-card-content">
-
                     <div className="academic-card-title">
-
-                      <h3>
-                        {resource.title}
-                      </h3>
+                      <h3>{resource.title}</h3>
 
                       <span>
                         {getResourceTypeLabel(
                           resource.resourceType
                         )}
                       </span>
-
                     </div>
 
                     <p className="academic-subject">
@@ -566,48 +707,40 @@ function Academic() {
                     </div>
 
                     <div className="academic-card-actions">
+                      <Link
+                        to={`/academic/${resource._id}`}
+                        className="view-details-button"
+                      >
+                        View Details
+                      </Link>
 
-  <Link
-    to={`/academic/${resource._id}`}
-    className="view-details-button"
-  >
-    View Details
-  </Link>
-
-  <button
-    type="button"
-    className="view-resource-button"
-    onClick={() =>
-      openResource(resource.fileUrl)
-    }
-  >
-    Open Resource
-  </button>
-
-</div>
-
+                      <button
+                        type="button"
+                        className="view-resource-button"
+                        onClick={() =>
+                          openResource(
+                            resource.fileUrl
+                          )
+                        }
+                      >
+                        Open Resource
+                      </button>
+                    </div>
                   </div>
-
                 </div>
-
               )
             )}
-
           </div>
         ) : (
           <div className="no-resources">
-
             <h3>No resources found</h3>
 
             <p>
               Try changing your search or filters.
             </p>
-
           </div>
         )}
-
       </section>
-
     </div>
   )
 }
