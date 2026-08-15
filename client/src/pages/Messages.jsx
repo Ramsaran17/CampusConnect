@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   createConversation,
   getConversations,
@@ -7,10 +8,12 @@ import {
   getUsers,
   markMessageAsRead,
   sendMessage,
+  uploadToCloudinary,
 } from '../api'
 import './Messages.css'
 
 function Messages() {
+  const navigate = useNavigate()
   const [currentUser, setCurrentUser] = useState(null)
 
   const [conversations, setConversations] = useState([])
@@ -34,7 +37,13 @@ function Messages() {
     useState(false)
 
   const [sending, setSending] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
+
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [filePreview, setFilePreview] = useState('')
+
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     loadInitialData()
@@ -55,6 +64,14 @@ function Messages() {
 
     loadUsers(userSearch)
   }, [showNewChat, userSearch])
+
+  useEffect(() => {
+    return () => {
+      if (filePreview) {
+        URL.revokeObjectURL(filePreview)
+      }
+    }
+  }, [filePreview])
 
   const loadInitialData = async () => {
     try {
@@ -109,10 +126,6 @@ function Messages() {
 
       setMessages(loadedMessages)
 
-      /*
-        Mark only messages received from the
-        other user as read.
-      */
       for (const message of loadedMessages) {
         const senderId =
           message.sender?._id
@@ -169,16 +182,14 @@ function Messages() {
     }
   }
 
-  /*
-    Get the participant who is NOT the
-    currently logged-in user.
-  */
   const getOtherParticipant = (
     conversation
   ) => {
     if (
       !conversation ||
-      !Array.isArray(conversation.participants) ||
+      !Array.isArray(
+        conversation.participants
+      ) ||
       !currentUser
     ) {
       return null
@@ -247,6 +258,7 @@ function Messages() {
     setSelectedConversation(conversation)
     setShowNewChat(false)
     setError('')
+    clearSelectedFile()
   }
 
   const handleStartConversation = async (
@@ -298,15 +310,86 @@ function Messages() {
     }
   }
 
+  const handleFileChange = (event) => {
+    const file =
+      event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    setError('')
+
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'application/pdf',
+    ]
+
+    if (!allowedTypes.includes(file.type)) {
+      setError(
+        'Only JPG, PNG, WEBP, and PDF files are allowed'
+      )
+
+      event.target.value = ''
+      return
+    }
+
+    const maxSize =
+      10 * 1024 * 1024
+
+    if (file.size > maxSize) {
+      setError(
+        'File size must be 10 MB or less'
+      )
+
+      event.target.value = ''
+      return
+    }
+
+    if (filePreview) {
+      URL.revokeObjectURL(filePreview)
+    }
+
+    setSelectedFile(file)
+
+    if (file.type.startsWith('image/')) {
+      setFilePreview(
+        URL.createObjectURL(file)
+      )
+    } else {
+      setFilePreview('')
+    }
+  }
+
+  const clearSelectedFile = () => {
+    if (filePreview) {
+      URL.revokeObjectURL(filePreview)
+    }
+
+    setSelectedFile(null)
+    setFilePreview('')
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
   const handleSendMessage = async (
     event
   ) => {
     event.preventDefault()
 
+    const messageText =
+      newMessage.trim()
+
     if (
-      !newMessage.trim() ||
+      (!messageText &&
+        !selectedFile) ||
       !selectedConversation ||
-      sending
+      sending ||
+      uploading
     ) {
       return
     }
@@ -315,9 +398,35 @@ function Messages() {
       setSending(true)
       setError('')
 
+      let attachment = null
+
+      if (selectedFile) {
+        setUploading(true)
+
+        const uploadResult =
+          await uploadToCloudinary(
+            selectedFile
+          )
+
+        attachment = {
+          url: uploadResult.secureUrl,
+          publicId:
+            uploadResult.publicId,
+          type: selectedFile.type.startsWith(
+            'image/'
+          )
+            ? 'image'
+            : 'file',
+          name: selectedFile.name,
+        }
+
+        setUploading(false)
+      }
+
       const data = await sendMessage(
         selectedConversation._id,
-        newMessage.trim()
+        messageText,
+        attachment
       )
 
       const createdMessage =
@@ -329,6 +438,7 @@ function Messages() {
       ])
 
       setNewMessage('')
+      clearSelectedFile()
 
       setConversations((current) =>
         current.map((conversation) =>
@@ -352,8 +462,11 @@ function Messages() {
         error.message ||
           'Failed to send message'
       )
+
+      setUploading(false)
     } finally {
       setSending(false)
+      setUploading(false)
     }
   }
 
@@ -372,14 +485,22 @@ function Messages() {
 
       <section className="messages-header">
 
-        <h1>Messages</h1>
+  <button
+    type="button"
+    className="messages-back-button"
+    onClick={() => navigate(-1)}
+  >
+    ← Back
+  </button>
 
-        <p>
-          Connect with students and communicate
-          directly on campus.
-        </p>
+  <h1>Messages</h1>
 
-      </section>
+  <p>
+    Connect with students and communicate
+    directly on campus.
+  </p>
+
+</section>
 
       <section className="chat-container">
 
@@ -618,9 +739,66 @@ function Messages() {
 
                         <div className="message-bubble">
 
-                          <p>
-                            {message.text}
-                          </p>
+                          {message.attachment?.url && (
+                            <div className="message-attachment">
+
+                              {message.attachment.type ===
+                              'image' ? (
+                                <a
+                                  href={
+                                    message
+                                      .attachment
+                                      .url
+                                  }
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  <img
+                                    src={
+                                      message
+                                        .attachment
+                                        .url
+                                    }
+                                    alt={
+                                      message
+                                        .attachment
+                                        .name ||
+                                      'Message attachment'
+                                    }
+                                  />
+                                </a>
+                              ) : (
+                                <a
+                                  href={
+                                    message
+                                      .attachment
+                                      .url
+                                  }
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="message-file"
+                                >
+                                  <span className="message-file-icon">
+                                    📄
+                                  </span>
+
+                                  <span className="message-file-name">
+                                    {message
+                                      .attachment
+                                      .name ||
+                                      'Attached file'}
+                                  </span>
+                                </a>
+                              )}
+
+                            </div>
+                          )}
+
+                          {message.text && (
+                            <p>
+                              {message.text}
+                            </p>
+                          )}
 
                           <span>
                             {formatMessageTime(
@@ -655,12 +833,81 @@ function Messages() {
 
               </div>
 
+              {selectedFile && (
+                <div className="attachment-preview">
+
+                  {filePreview ? (
+                    <img
+                      src={filePreview}
+                      alt="Selected attachment"
+                    />
+                  ) : (
+                    <div className="attachment-file-preview">
+                      <span>📄</span>
+
+                      <div>
+                        <strong>
+                          {selectedFile.name}
+                        </strong>
+
+                        <small>
+                          PDF •{' '}
+                          {(
+                            selectedFile.size /
+                            (1024 * 1024)
+                          ).toFixed(2)}{' '}
+                          MB
+                        </small>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    className="remove-attachment-button"
+                    onClick={clearSelectedFile}
+                    disabled={
+                      sending || uploading
+                    }
+                    aria-label="Remove attachment"
+                  >
+                    ×
+                  </button>
+
+                </div>
+              )}
+
               <form
                 className="message-input-area"
                 onSubmit={
                   handleSendMessage
                 }
               >
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.webp,.pdf"
+                  onChange={
+                    handleFileChange
+                  }
+                  hidden
+                />
+
+                <button
+                  type="button"
+                  className="attachment-button"
+                  onClick={() =>
+                    fileInputRef.current?.click()
+                  }
+                  disabled={
+                    sending || uploading
+                  }
+                  aria-label="Attach file"
+                  title="Attach image or PDF"
+                >
+                  📎
+                </button>
 
                 <input
                   type="text"
@@ -672,19 +919,25 @@ function Messages() {
                   }
                   placeholder="Type a message..."
                   maxLength={2000}
-                  disabled={sending}
+                  disabled={
+                    sending || uploading
+                  }
                 />
 
                 <button
                   type="submit"
                   disabled={
                     sending ||
-                    !newMessage.trim()
+                    uploading ||
+                    (!newMessage.trim() &&
+                      !selectedFile)
                   }
                 >
-                  {sending
-                    ? 'Sending...'
-                    : 'Send'}
+                  {uploading
+                    ? 'Uploading...'
+                    : sending
+                      ? 'Sending...'
+                      : 'Send'}
                 </button>
 
               </form>
