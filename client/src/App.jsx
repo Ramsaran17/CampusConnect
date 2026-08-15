@@ -21,6 +21,7 @@ import EditEvent from './pages/EditEvent'
 import Messages from './pages/Messages'
 import EditListing from './pages/EditListing'
 import Saved from './pages/Saved'
+import NotFound from './pages/NotFound'
 
 function App() {
   return (
@@ -30,6 +31,8 @@ function App() {
         <Route element={<MainLayout />}>
 
           <Route path="/" element={<Home />} />
+
+          <Route path="*" element={<NotFound />} />
 
           <Route
             path="/marketplace"
