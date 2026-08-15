@@ -602,7 +602,8 @@ export const getMessages = async (conversationId) => {
 
 export const sendMessage = async (
   conversationId,
-  text
+  text,
+  attachment = null
 ) => {
   const response = await fetch(
     `${API_URL}/api/messages/conversations/${conversationId}`,
@@ -614,6 +615,7 @@ export const sendMessage = async (
       },
       body: JSON.stringify({
         text,
+        attachment,
       }),
     }
   )
@@ -622,8 +624,7 @@ export const sendMessage = async (
 
   if (!response.ok) {
     throw new Error(
-      data.message ||
-        'Failed to send message'
+      data.message || 'Failed to send message'
     )
   }
 
