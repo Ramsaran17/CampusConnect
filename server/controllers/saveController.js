@@ -1,4 +1,8 @@
 const Save = require("../models/Save");
+const Marketplace = require("../models/Marketplace");
+const AcademicResource = require("../models/AcademicResource");
+const Event = require("../models/Event");
+const LostFound = require("../models/LostFound");
 
 const saveItem = async (req, res) => {
     try {
@@ -47,14 +51,68 @@ const getSavedItems = async (req, res) => {
             user: req.user._id
         }).sort({ createdAt: -1 });
 
+        const savedItems = await Promise.all(
+            saves.map(async (save) => {
+                let item = null;
+
+                if (save.itemType === "marketplace") {
+                    item = await Marketplace.findById(
+                        save.itemId
+                    ).populate(
+                        "seller",
+                        "name email profileImage"
+                    );
+                }
+
+                if (save.itemType === "academic") {
+                    item = await AcademicResource.findById(
+                        save.itemId
+                    ).populate(
+                        "uploadedBy",
+                        "name email profileImage"
+                    );
+                }
+
+                if (save.itemType === "event") {
+                    item = await Event.findById(
+                        save.itemId
+                    ).populate(
+                        "createdBy",
+                        "name email profileImage"
+                    );
+                }
+
+                if (save.itemType === "lost-found") {
+                    item = await LostFound.findById(
+                        save.itemId
+                    ).populate(
+                        "user",
+                        "name email profileImage"
+                    );
+                }
+
+                return {
+                    _id: save._id,
+                    itemType: save.itemType,
+                    itemId: save.itemId,
+                    createdAt: save.createdAt,
+                    item
+                };
+            })
+        );
+
         return res.status(200).json({
-            saves
+            saves: savedItems
         });
     } catch (error) {
-        console.error("Get saved items error:", error.message);
+        console.error(
+            "Get saved items error:",
+            error.message
+        );
 
         return res.status(500).json({
-            message: "Server error while fetching saved items"
+            message:
+                "Server error while fetching saved items"
         });
     }
 };
@@ -73,10 +131,14 @@ const checkSaved = async (req, res) => {
             saved: !!save
         });
     } catch (error) {
-        console.error("Check saved item error:", error.message);
+        console.error(
+            "Check saved item error:",
+            error.message
+        );
 
         return res.status(500).json({
-            message: "Server error while checking saved item"
+            message:
+                "Server error while checking saved item"
         });
     }
 };
@@ -98,13 +160,18 @@ const removeSavedItem = async (req, res) => {
         }
 
         return res.status(200).json({
-            message: "Item removed from saved items"
+            message:
+                "Item removed from saved items"
         });
     } catch (error) {
-        console.error("Remove saved item error:", error.message);
+        console.error(
+            "Remove saved item error:",
+            error.message
+        );
 
         return res.status(500).json({
-            message: "Server error while removing saved item"
+            message:
+                "Server error while removing saved item"
         });
     }
 };
