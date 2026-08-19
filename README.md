@@ -49,8 +49,7 @@ Every edit/delete action checks that you actually own the thing you're trying to
 1. Clone the repo and install dependencies in both `client/` and `server/` (`npm install` in each folder).
 2. Copy `.env.example` to `.env` in both folders and fill in your own MongoDB URI, JWT secret, and Cloudinary keys.
 3. Run the backend: `cd server && npm start`
-4. (Optional) Seed some demo data — 10+ sample items per section: `cd server && npm run seed`
-5. Run the frontend: `cd client && npm run dev`
+4. Run the frontend: `cd client && npm run dev`
 
 ## Live demo
 
@@ -58,5 +57,5 @@ Every edit/delete action checks that you actually own the thing you're trying to
 
 ## Built by
 
-- [Ramsaran17](https://github.com/Ramsaran17) — integration & deployment
-- [DivviPavani](https://github.com/DivviPavani) — frontend
+- [Ramsaran17](https://github.com/Ramsaran17) 
+- [DivviPavani](https://github.com/DivviPavani) 
