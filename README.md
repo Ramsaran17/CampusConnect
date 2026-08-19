@@ -27,3 +27,36 @@ Every edit/delete action checks that you actually own the thing you're trying to
 **File/image storage:** Cloudinary
 
 ## Project structure
+client/
+src/
+api.js # All backend API calls in one place
+App.jsx # Routes
+layouts/
+MainLayout.jsx # Navbar + page content + footer
+components/ # Reusable UI (Navbar, Footer, BackButton, FeatureCard, etc.)
+pages/ # One file per page (Marketplace, LostFound, Events, etc.)
+server/
+config/db.js # MongoDB connection
+controllers/ # Route logic per feature
+middleware/ # Auth middleware
+models/ # Mongoose schemas
+routes/ # Express routes
+utils/seed.js # Seeds demo users + sample data for each section
+
+
+## Getting started
+
+1. Clone the repo and install dependencies in both `client/` and `server/` (`npm install` in each folder).
+2. Copy `.env.example` to `.env` in both folders and fill in your own MongoDB URI, JWT secret, and Cloudinary keys.
+3. Run the backend: `cd server && npm start`
+4. (Optional) Seed some demo data — 10+ sample items per section: `cd server && npm run seed`
+5. Run the frontend: `cd client && npm run dev`
+
+## Live demo
+
+[https://dummy-project-1-dfsr.onrender.com](https://dummy-project-1-dfsr.onrender.com)
+
+## Built by
+
+- [Ramsaran17](https://github.com/Ramsaran17) 
+- [DivviPavani](https://github.com/DivviPavani) 
