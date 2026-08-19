@@ -27,21 +27,7 @@ Every edit/delete action checks that you actually own the thing you're trying to
 **File/image storage:** Cloudinary
 
 ## Project structure
-client/
-src/
-api.js # All backend API calls in one place
-App.jsx # Routes
-layouts/
-MainLayout.jsx # Navbar + page content + footer
-components/ # Reusable UI (Navbar, Footer, BackButton, FeatureCard, etc.)
-pages/ # One file per page (Marketplace, LostFound, Events, etc.)
-server/
-config/db.js # MongoDB connection
-controllers/ # Route logic per feature
-middleware/ # Auth middleware
-models/ # Mongoose schemas
-routes/ # Express routes
-utils/seed.js # Seeds demo users + sample data for each section
+ ``` client/ src/ api.js # All backend API calls in one place App.jsx # Routes layouts/ MainLayout.jsx # Navbar + page content + footer components/ # Reusable UI (Navbar, Footer, BackButton, FeatureCard, etc.) pages/ # One file per page (Marketplace, LostFound, Events, etc.) server/ config/db.js # MongoDB connection controllers/ # Route logic per feature middleware/ # Auth middleware models/ # Mongoose schemas routes/ # Express routes utils/seed.js # Seeds demo users + sample data for each section ```
 
 
 ## Getting started
