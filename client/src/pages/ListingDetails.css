@@ -150,16 +150,24 @@
 .contact-seller-button {
   display: inline-block;
   padding: 12px 22px;
+  border: none;
   border-radius: 8px;
   background-color: #1e293b;
   color: white;
   text-decoration: none;
   font-size: 16px;
+  font-family: inherit;
+  cursor: pointer;
   box-sizing: border-box;
 }
 
 .contact-seller-button:hover {
   background-color: #334155;
+}
+
+.contact-seller-button:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
 }
 
 .edit-listing-button {

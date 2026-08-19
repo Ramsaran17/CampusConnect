@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
   createConversation,
   getConversations,
@@ -14,6 +14,7 @@ import './Messages.css'
 
 function Messages() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [currentUser, setCurrentUser] = useState(null)
 
   const [conversations, setConversations] = useState([])
@@ -91,7 +92,25 @@ function Messages() {
 
       setConversations(loadedConversations)
 
-      if (loadedConversations.length > 0) {
+      const requestedId = location.state?.conversationId
+
+      const requestedConversation = requestedId
+        ? loadedConversations.find(
+            (conversation) =>
+              conversation._id === requestedId
+          )
+        : null
+
+      if (requestedConversation) {
+        setSelectedConversation(requestedConversation)
+
+        // Clear the navigation state so refreshing or navigating
+        // back doesn't keep forcing this same conversation open.
+        navigate(location.pathname, {
+          replace: true,
+          state: {},
+        })
+      } else if (loadedConversations.length > 0) {
         setSelectedConversation(
           loadedConversations[0]
         )

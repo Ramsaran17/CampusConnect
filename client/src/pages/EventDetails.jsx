@@ -5,6 +5,7 @@ import {
   getMe,
   deleteEvent,
 } from '../api'
+import BackButton from '../components/BackButton'
 import './EventDetails.css'
 
 function EventDetails() {
@@ -144,12 +145,7 @@ function EventDetails() {
 
       <div className="event-details-container">
 
-        <Link
-          to="/events"
-          className="back-events"
-        >
-          ← Back to Events
-        </Link>
+        <BackButton label="Back to Events" fallback="/events" />
 
         <div className="event-details-card">
 

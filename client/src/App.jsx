@@ -32,8 +32,6 @@ function App() {
 
           <Route path="/" element={<Home />} />
 
-          <Route path="*" element={<NotFound />} />
-
           <Route
             path="/marketplace"
             element={<Marketplace />}
@@ -45,24 +43,14 @@ function App() {
           />
 
           <Route
-            path="/marketplace/:id/edit"
-            element={<EditListing />}
-          />
-
-          <Route
             path="/lost-found"
             element={<LostFound />}
           />
 
           <Route
-  path="/lost-found/:id"
-  element={<LostFoundDetails />}
-/>
-
-<Route
-  path="/lost-found/:id/edit"
-  element={<EditLostFound />}
-/>
+            path="/lost-found/:id"
+            element={<LostFoundDetails />}
+          />
 
           <Route
             path="/academic"
@@ -70,13 +58,8 @@ function App() {
           />
 
           <Route
-  path="/academic/:id"
-  element={<AcademicDetails />}
-/>
-
-          <Route
-            path="/academic/:id/edit"
-            element={<EditAcademicResource />}
+            path="/academic/:id"
+            element={<AcademicDetails />}
           />
 
           <Route
@@ -85,44 +68,64 @@ function App() {
           />
 
           <Route
-  path="/events/:id"
-  element={<EventDetails />}
-/>
+            path="/events/:id"
+            element={<EventDetails />}
+          />
 
-<Route
-  path="/events/:id/edit"
-  element={<EditEvent />}
-/>
+          {/* Routes below require the user to be logged in,
+              but still render inside the shared layout so the
+              navbar and footer are always present. */}
+          <Route element={<ProtectedRoute />}>
+
+            <Route
+              path="/marketplace/:id/edit"
+              element={<EditListing />}
+            />
+
+            <Route
+              path="/lost-found/:id/edit"
+              element={<EditLostFound />}
+            />
+
+            <Route
+              path="/academic/:id/edit"
+              element={<EditAcademicResource />}
+            />
+
+            <Route
+              path="/events/:id/edit"
+              element={<EditEvent />}
+            />
+
+            <Route
+              path="/profile"
+              element={<Profile />}
+            />
+
+            <Route
+              path="/marketplace/create"
+              element={<CreateListing />}
+            />
+
+            <Route
+              path="/messages"
+              element={<Messages />}
+            />
+
+            <Route
+              path="/saved"
+              element={<Saved />}
+            />
+
+          </Route>
+
+          <Route path="*" element={<NotFound />} />
 
         </Route>
 
         <Route path="/login" element={<Login />} />
 
         <Route path="/register" element={<Register />} />
-
-        <Route element={<ProtectedRoute />}>
-
-          <Route
-            path="/profile"
-            element={<Profile />}
-          />
-
-          <Route
-            path="/marketplace/create"
-            element={<CreateListing />}
-          />
-
-          <Route
-            path="/messages"
-            element={<Messages />}
-          />
-
-          <Route
-  path="/saved"
-  element={<Saved />}
-/>
-
-        </Route>
 
       </Routes>
     </BrowserRouter>

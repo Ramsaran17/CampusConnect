@@ -7,7 +7,9 @@ import {
   saveItem,
   checkSaved,
   removeSavedItem,
+  createConversation,
 } from '../api'
+import BackButton from '../components/BackButton'
 import './ListingDetails.css'
 
 function ListingDetails() {
@@ -21,6 +23,7 @@ function ListingDetails() {
   const [saving, setSaving] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   const [error, setError] = useState('')
+  const [contacting, setContacting] = useState(false)
 
   useEffect(() => {
     loadListing()
@@ -114,6 +117,38 @@ function ListingDetails() {
     }
   }
 
+  const handleContactSeller = async () => {
+    if (!item?.seller?._id) return
+
+    try {
+      setContacting(true)
+
+      const conversation = await createConversation(
+        item.seller._id
+      )
+
+      navigate('/messages', {
+        state: {
+          conversationId:
+            conversation?.conversation?._id ||
+            conversation?._id,
+        },
+      })
+    } catch (error) {
+      console.error(
+        'Failed to start conversation:',
+        error
+      )
+
+      alert(
+        error.message ||
+          'Failed to start a conversation with the seller'
+      )
+    } finally {
+      setContacting(false)
+    }
+  }
+
   const handleDelete = async () => {
     const confirmed = window.confirm(
       'Are you sure you want to delete this listing?'
@@ -178,12 +213,7 @@ function ListingDetails() {
 
       <div className="listing-details-container">
 
-        <Link
-          to="/marketplace"
-          className="back-marketplace"
-        >
-          ← Back to Marketplace
-        </Link>
+        <BackButton label="Back to Marketplace" fallback="/marketplace" />
 
         <div className="listing-details-card">
 
@@ -314,12 +344,14 @@ function ListingDetails() {
 
               <div className="listing-action-buttons">
 
-                <Link
-                  to="/messages"
+                <button
+                  type="button"
                   className="contact-seller-button"
+                  onClick={handleContactSeller}
+                  disabled={contacting}
                 >
-                  Contact Seller
-                </Link>
+                  {contacting ? 'Starting chat...' : 'Contact Seller'}
+                </button>
 
                 {!isOwner && (
                   <button

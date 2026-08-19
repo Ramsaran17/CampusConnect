@@ -5,6 +5,7 @@ import {
   getMe,
   deleteLostFoundPost,
 } from '../api'
+import BackButton from '../components/BackButton'
 import './LostFoundDetails.css'
 
 function LostFoundDetails() {
@@ -124,12 +125,7 @@ function LostFoundDetails() {
 
       <div className="lost-found-details-container">
 
-        <Link
-          to="/lost-found"
-          className="back-lost-found"
-        >
-          ← Back to Lost & Found
-        </Link>
+        <BackButton label="Back to Lost & Found" fallback="/lost-found" />
 
         <div className="lost-found-details-card">
 

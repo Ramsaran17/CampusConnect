@@ -30,18 +30,52 @@
   gap: 20px;
 }
 
-.navbar-links a {
+.navbar-links a,
+.navbar-links .nav-link {
   color: white;
   text-decoration: none;
   font-size: 17px;
   white-space: nowrap;
+  padding: 6px 4px;
+  position: relative;
   transition: color 0.2s ease;
 }
 
 /* Blue hover */
 
-.navbar-links a:hover {
+.navbar-links a:hover,
+.navbar-links .nav-link:hover {
   color: #38bdf8;
+}
+
+/* Underline that grows in on hover */
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: -2px;
+  height: 2px;
+  border-radius: 2px;
+  background-color: #38bdf8;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s ease;
+}
+
+.nav-link:hover::after {
+  transform: scaleX(1);
+}
+
+/* Currently active section stays highlighted */
+
+.nav-link-active {
+  color: #38bdf8;
+}
+
+.nav-link-active::after {
+  transform: scaleX(1);
 }
 
 /* Logout */

@@ -8,6 +8,7 @@ import {
   checkSaved,
   removeSavedItem,
 } from '../api'
+import BackButton from '../components/BackButton'
 import './AcademicDetails.css'
 
 const getResourceTypeLabel = (value) => {
@@ -195,12 +196,7 @@ setSaved(savedData.saved)
 
       <div className="academic-details-container">
 
-        <Link
-          to="/academic"
-          className="back-academic"
-        >
-          ← Back to Academic Resources
-        </Link>
+        <BackButton label="Back to Academic Resources" fallback="/academic" />
 
         <div className="academic-details-card">
 

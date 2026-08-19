@@ -32,11 +32,10 @@ const createConversation = async (req, res) => {
             userId.toString()
         ].sort();
 
+        const participantsKey = participants.join("_");
+
         let conversation = await Conversation.findOne({
-            participants: {
-                $all: participants,
-                $size: 2
-            }
+            participantsKey
         }).populate(
             "participants",
             "name email profileImage department year"
@@ -49,9 +48,22 @@ const createConversation = async (req, res) => {
             });
         }
 
-        conversation = await Conversation.create({
-            participants
-        });
+        try {
+            conversation = await Conversation.create({
+                participants
+            });
+        } catch (createError) {
+            // Duplicate key race: someone else created the same
+            // conversation between the same two users a moment ago.
+            // Fetch and return it instead of failing.
+            if (createError.code === 11000) {
+                conversation = await Conversation.findOne({
+                    participantsKey
+                });
+            } else {
+                throw createError;
+            }
+        }
 
         await conversation.populate(
             "participants",
